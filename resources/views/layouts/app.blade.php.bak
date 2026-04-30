@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAP-UMKM — @yield('title', 'Sistem Analisis Profit UMKM')</title>
+
+    {{-- Bootstrap 5 --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    {{-- Bootstrap Icons --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --sap-primary: #1a6b3a;
+            --sap-accent:  #f4a100;
+            --sap-light:   #f8fdf9;
+        }
+        body { background: var(--sap-light); font-family: 'Segoe UI', sans-serif; }
+
+        /* ── Navbar ── */
+        .navbar-sap { background: var(--sap-primary); }
+        .navbar-sap .navbar-brand { font-weight: 700; color: #fff !important; letter-spacing: 1px; }
+        .navbar-sap .nav-link { color: rgba(255,255,255,.85) !important; }
+        .navbar-sap .nav-link:hover,
+        .navbar-sap .nav-link.active { color: var(--sap-accent) !important; }
+
+        /* ── Cards ── */
+        .card-metric {
+            border: none; border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.08);
+            transition: transform .2s;
+        }
+        .card-metric:hover { transform: translateY(-3px); }
+        .metric-icon { font-size: 2rem; }
+
+        /* ── Footer ── */
+        footer { background: var(--sap-primary); color: rgba(255,255,255,.7); }
+
+        /* ── Badge Profit ── */
+        .badge-profit-pos { background: #d4edda; color: #155724; }
+        .badge-profit-neg { background: #f8d7da; color: #721c24; }
+
+        /* ── SDGs badge ── */
+        .sdg-badge { border-radius: 8px; font-weight: 600; font-size: .75rem; padding: .3rem .6rem; }
+        .sdg-8  { background: #a21942; color: #fff; }
+        .sdg-9  { background: #fd6925; color: #fff; }
+    </style>
+    @stack('styles')
+</head>
+<body>
+
+{{-- NAVBAR --}}
+<nav class="navbar navbar-expand-lg navbar-sap shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="{{ route('home') }}">
+            <i class="bi bi-bar-chart-fill me-2" style="color: var(--sap-accent)"></i>SAP-UMKM
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
+                        <i class="bi bi-house me-1"></i>Beranda
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('upload.*') ? 'active' : '' }}" href="{{ route('upload.form') }}">
+                        <i class="bi bi-cloud-upload me-1"></i>Unggah Data
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('riwayat') ? 'active' : '' }}" href="{{ route('riwayat') }}">
+                        <i class="bi bi-clock-history me-1"></i>Riwayat
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('template.download') }}">
+                        <i class="bi bi-download me-1"></i>Template
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('tentang') ? 'active' : '' }}" href="{{ route('tentang') }}">
+                        <i class="bi bi-info-circle me-1"></i>Tentang
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+{{-- FLASH MESSAGES --}}
+<div class="container mt-3">
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+</div>
+
+{{-- KONTEN HALAMAN --}}
+<main class="container my-4">
+    @yield('content')
+</main>
+
+{{-- FOOTER --}}
+<footer class="py-3 mt-5">
+    <div class="container text-center small">
+        <i class="bi bi-c-circle me-1"></i>2026 SAP-UMKM — Politeknik Negeri Cilacap
+        &nbsp;|&nbsp;
+        <span class="sdg-badge sdg-8 mx-1">SDGs 8</span>
+        <span class="sdg-badge sdg-9 mx-1">SDGs 9</span>
+        &nbsp;|&nbsp; Firly Nurrohman · Ade Ariyansyah · Bintang Fajar Joyla
+    </div>
+</footer>
+
+{{-- Bootstrap JS --}}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@stack('scripts')
+</body>
+</html>

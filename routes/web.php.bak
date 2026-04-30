@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AnalisisController;
+
+/*
+|--------------------------------------------------------------------------
+| FUNGSI ROUTING AKSES (Fase 3)
+| Menghubungkan URL ke Controller yang tepat.
+|--------------------------------------------------------------------------
+*/
+
+// ── Halaman Beranda ──────────────────────────────────────────────────────
+Route::get('/', [AnalisisController::class, 'index'])->name('home');
+
+// ── Download Template Excel ──────────────────────────────────────────────
+Route::get('/template/download', [AnalisisController::class, 'downloadTemplate'])
+    ->name('template.download');
+
+// ── Upload & Proses File ─────────────────────────────────────────────────
+Route::get('/upload',  [AnalisisController::class, 'showUpload'])->name('upload.form');
+Route::post('/proses', [AnalisisController::class, 'prosesUpload'])->name('upload.proses');
+
+// ── Dashboard Hasil Analisis ─────────────────────────────────────────────
+Route::get('/dashboard/{id}', [AnalisisController::class, 'dashboard'])->name('dashboard.show');
+
+// ── Riwayat Analisis ─────────────────────────────────────────────────────
+Route::get('/riwayat', [AnalisisController::class, 'riwayat'])->name('riwayat');
+
+// ── Hapus Laporan ────────────────────────────────────────────────────────
+Route::delete('/laporan/{id}', [AnalisisController::class, 'hapus'])->name('laporan.hapus');
+
+// ── Halaman Tentang / Info SDGs ──────────────────────────────────────────
+Route::get('/tentang', [AnalisisController::class, 'tentang'])->name('tentang');
