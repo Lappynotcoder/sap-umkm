@@ -7,10 +7,9 @@ Berbeda dari sistem tradisional, SAP-UMKM menyediakan visualisasi yang kaya, ana
 ---
 
 ## Tim Pengembang
-Dikembangkan oleh mahasiswa **Politeknik Negeri Cilacap**:
-- **Firly Nurrohman** (Project Lead & Backend)
-- **Ade Ariyansyah** (Frontend & UI/UX)
-- **Bintang Fajar Joyla** (Data Engineer)
+- **Firly Nurrohman**
+- **Ade Ariansyah Anggoro**
+- **Bintang Fajar Jolya Anggara**
 
 Aplikasi ini mendukung pencapaian **Sustainable Development Goals (SDGs)**:
 - **Poin 8:** Pekerjaan Layak dan Pertumbuhan Ekonomi
@@ -33,8 +32,6 @@ Pastikan sistem Anda memenuhi kebutuhan minimum berikut:
 - **Composer** (untuk instalasi dependensi backend)
 - **Node.js & npm** (untuk kompilasi frontend Vite)
 - **MySQL** / MariaDB (untuk database relasional)
-
-*(Catatan: Versi sebelumnya yang menggunakan Python Pandas untuk Excel Upload telah **dihapus/dinonaktifkan** demi efisiensi dan kemudahan akses bagi pengguna seluler).*
 
 ---
 
