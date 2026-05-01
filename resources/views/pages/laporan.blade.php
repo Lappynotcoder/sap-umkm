@@ -156,7 +156,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <th>Break Even Point (BEP)</th>
+                    <th>Target Balik Modal</th>
                     <td>Rp {{ number_format($laporan->break_even, 0, ',', '.') }}</td>
                 </tr>
             </tbody>

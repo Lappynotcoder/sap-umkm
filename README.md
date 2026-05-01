@@ -20,9 +20,11 @@ Aplikasi ini mendukung pencapaian **Sustainable Development Goals (SDGs)**:
 ## Fitur Utama Terkini
 1. **User-Focused Architecture**: Menggunakan Laravel Breeze. Setiap akun terikat pada satu UMKM secara spesifik, sehingga privasi dan isolasi data sangat terjamin.
 2. **Pencatatan Keuangan Praktis**: Input data Pemasukan, HPP (Harga Pokok Penjualan), dan Operasional secara langsung (manual) tanpa repot menggunakan spreadsheet eksternal.
-3. **Forecasting Prediksi Laba**: Dilengkapi algoritma *Linear Regression* yang mengukur tren historis transaksi untuk memprediksi Pemasukan dan Laba Bersih di bulan berikutnya.
-4. **Dashboard Visualisasi Dinamis**: Menampilkan perkembangan bisnis dengan menggunakan Chart.js (Grafik Bar, Line, Doughnut) secara interaktif.
-5. **Kalkulasi Otomatis**: Mengkalkulasi Laba Kotor, Laba Bersih, Margin Keuntungan, serta Break Even Point (BEP) secara instan.
+3. **Dashboard Visualisasi Dinamis**: Menampilkan perkembangan bisnis dengan menggunakan Chart.js (Grafik Bar, Line, Doughnut) secara interaktif dan terpusat.
+4. **Interactive Year Navigation**: Seluruh grafik dapat difilter berdasarkan tahun secara *real-time* tanpa *reload* halaman berkat integrasi data Javascript.
+5. **Forecasting Prediksi Laba Cerdas**: Dilengkapi algoritma *Linear Regression* yang mengukur tren historis dengan mengisolasi anomali bulan berjalan demi prediksi bulan depan yang akurat.
+6. **Manajemen Riwayat Transaksi**: Menyediakan halaman khusus "Riwayat" berbekal *Pagination* penuh yang tersinkronisasi dengan filter tahun.
+7. **Kalkulasi Otomatis**: Mengkalkulasi Laba Kotor, Laba Bersih, Margin Keuntungan, serta Break Even Point (BEP) secara instan.
 
 ---
 
@@ -74,7 +76,7 @@ Pastikan sistem Anda memenuhi kebutuhan minimum berikut:
    ```bash
    php artisan migrate:fresh --seed
    ```
-   *Seeder ini akan otomatis membuat 2 akun pengguna (Warung Barokah & Toko Sejahtera) lengkap dengan tren data 1.5 tahun ke belakang.*
+   *Seeder ini akan otomatis membuat akun pengguna default lengkap dengan narasi data 2.5 tahun ke belakang (2024-2026).*
 
 6. **Jalankan Server Development**
    Anda membutuhkan 2 terminal terpisah:
@@ -94,15 +96,13 @@ Pastikan sistem Anda memenuhi kebutuhan minimum berikut:
 
 ---
 
-## Cara Menggunakan
+## Panduan Penggunaan Singkat
 1. Masuk ke `http://localhost:8000` dan daftar sebagai akun baru (Anda wajib memasukkan Nama UMKM Anda).
 2. Jika menggunakan Seeder, Anda bisa login menggunakan akun admin default: `admin@sapumkm.test` / password: `password`.
-3. Masuk ke halaman **Catat Transaksi** untuk memasukkan data bulanan.
-4. Periksa hasilnya di **Riwayat**, di mana Anda bisa melihat "Detail" per bulan.
-5. Akses menu **Analisis** untuk melihat grafik komprehensif, komposisi biaya, dan hasil dari algoritma **Prediksi/Forecasting**.
+3. Masuk ke halaman **Keuangan** untuk memasukkan data bulanan.
+4. Periksa dan saring hasilnya berdasarkan tahun di menu **Riwayat**.
+5. Akses menu **Analisis** untuk mengeksplorasi visualisasi data dengan menggunakan navigasi tahun (`<` dan `>`) pada fitur forecasting dan grafik batang.
 
 ---
 
 &copy; 2026 SAP-UMKM - Politeknik Negeri Cilacap
-# sap-umkm
-# sap-umkm

@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/proses', [AnalisisController::class, 'prosesUpload'])->name('upload.proses');
     Route::get('/dashboard/{id}', [AnalisisController::class, 'dashboard'])->name('dashboard.show');
     Route::get('/riwayat', [AnalisisController::class, 'riwayat'])->name('riwayat');
+    Route::get('/history', [AnalisisController::class, 'history'])->name('history');
     Route::get('/laporan', [AnalisisController::class, 'laporan'])->name('laporan');
     Route::get('/analisis', [AnalisisController::class, 'analisis'])->name('analisis');
     Route::delete('/laporan/{id}', [AnalisisController::class, 'hapus'])->name('laporan.hapus');

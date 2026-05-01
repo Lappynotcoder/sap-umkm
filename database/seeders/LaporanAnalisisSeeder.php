@@ -40,8 +40,8 @@ class LaporanAnalisisSeeder extends Seeder
         $dataWarung = [];
         $dataToko = [];
 
-        // Generate data from Jan 2025 to May 2026 (17 months)
-        for ($year = 2025; $year <= 2026; $year++) {
+        // Generate data from Jan 2024 to May 2026 (29 months)
+        for ($year = 2024; $year <= 2026; $year++) {
             $endMonth = ($year == 2026) ? 5 : 12;
             for ($month = 1; $month <= $endMonth; $month++) {
                 $date = sprintf('%04d-%02d-15', $year, $month);

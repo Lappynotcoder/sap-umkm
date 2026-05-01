@@ -97,10 +97,16 @@
 
 {{-- ── GRAFIK BAR: Pemasukan vs Pengeluaran Bulanan ── --}}
 <div class="chart-card mb-4">
-    <div class="section-title">
-        <i class="bi bi-bar-chart-fill me-2"></i>Pemasukan vs Pengeluaran — Tahun {{ $tahun }}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-title mb-0">
+            <i class="bi bi-bar-chart-fill me-2"></i>Pemasukan vs Pengeluaran — Tahun {{ $tahun }}
+        </div>
     </div>
-    <canvas id="chartBulanan" height="100"></canvas>
+    <div style="position: relative; overflow-x: auto;">
+        <div style="min-width: 600px;">
+            <canvas id="chartBulanan" height="100"></canvas>
+        </div>
+    </div>
 </div>
 
 @endif
@@ -123,7 +129,7 @@
                 </tr>
             </thead>
             <tbody>
-            @foreach($riwayat->take(5) as $r)
+            @foreach($riwayat as $r)
             <tr>
                 <td class="small text-muted">
                     @php
@@ -150,13 +156,11 @@
             </tbody>
         </table>
     </div>
-    @if($riwayat->total() > 5)
     <div class="text-center mt-3">
-        <a href="{{ route('riwayat', ['page' => 1]) }}" class="text-muted small text-decoration-none">
-            Lihat semua {{ $riwayat->total() }} transaksi <i class="bi bi-arrow-right ms-1"></i>
+        <a href="{{ route('history') }}" class="text-muted small text-decoration-none">
+            Lihat semua histori transaksi <i class="bi bi-arrow-right ms-1"></i>
         </a>
     </div>
-    @endif
 </div>
 @else
 <div class="card card-metric">

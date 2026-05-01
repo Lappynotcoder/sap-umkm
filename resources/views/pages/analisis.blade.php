@@ -109,11 +109,20 @@
 {{-- ── GRAFIK-GRAFIK ── --}}
 {{-- ══════════════════════════════════════════════════════════════════════ --}}
 
+@if($trendData->count() > 0)
+<div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar-range me-2"></i>Analisis Tahun <span id="currentYearDisplay">{{ $tahun }}</span></h5>
+    <div>
+        <button class="btn btn-sm btn-outline-secondary me-1" id="btnPrevYear" title="Tahun Sebelumnya"><i class="bi bi-chevron-left"></i></button>
+        <button class="btn btn-sm btn-outline-secondary" id="btnNextYear" title="Tahun Berikutnya"><i class="bi bi-chevron-right"></i></button>
+    </div>
+</div>
+
 {{-- Row 1: Tren Bulanan (Bar) + Komposisi Biaya (Doughnut) --}}
 <div class="row g-4 mb-4">
     <div class="col-lg-8">
         <div class="chart-card h-100">
-            <div class="chart-title"><i class="bi bi-bar-chart-fill"></i>Pemasukan vs Pengeluaran Bulanan — {{ $tahun }}</div>
+            <div class="chart-title"><i class="bi bi-bar-chart-fill"></i>Pemasukan vs Pengeluaran Bulanan</div>
             <canvas id="chartBulanan" height="160"></canvas>
         </div>
     </div>
@@ -126,17 +135,16 @@
 </div>
 
 {{-- Row 2: Tren Margin (Line) + Prediksi (Bar/Line) --}}
-@if($trendData->count() > 1)
 <div class="row g-4 mb-4">
     <div class="col-lg-6">
         <div class="chart-card h-100">
-            <div class="chart-title"><i class="bi bi-speedometer"></i>Tren Margin Profitabilitas</div>
+            <div class="chart-title"><i class="bi bi-speedometer"></i>Perkembangan Keuntungan</div>
             <canvas id="chartMargin" height="150"></canvas>
         </div>
     </div>
     <div class="col-lg-6">
         <div class="chart-card h-100">
-            <div class="chart-title"><i class="bi bi-magic text-warning"></i>Forecasting (Regresi Linear)</div>
+            <div class="chart-title"><i class="bi bi-magic text-warning"></i>Perkiraan Penjualan</div>
             <canvas id="chartPrediksi" height="150"></canvas>
             @if($prediksi)
                 <div class="mt-3 small text-center text-muted">
@@ -205,156 +213,153 @@ const fmtRpShort = v => {
 };
 
 // ══════════════════════════════════════════════════════════════════════
-// 1. BAR: Pemasukan vs Pengeluaran Bulanan
+// INISIALISASI DATA & CHART GLOBAL
 // ══════════════════════════════════════════════════════════════════════
-const bulanan = {!! json_encode($chartBulanan) !!};
-const lblBulan = bulanan.map(d => d.bulan);
+@if($trendData->count() > 0)
+// Raw data untuk komputasi chart Bar & Pie
+const master_raw = {!! json_encode($trendData->map(function($i) { 
+    return ['thn' => $i->thn, 'bln' => $i->bln, 'pem' => $i->total_pemasukan, 'hpp' => $i->total_hpp, 'ops' => $i->total_operasional, 'laba' => $i->laba_bersih]; 
+})) !!};
 
-new Chart(document.getElementById('chartBulanan'), {
+// Master Data Margin
+const master_tLabels = {!! json_encode($trendData->pluck('bulan')->map(function($d){ try{ return \Carbon\Carbon::parse($d)->format('M Y'); } catch(\Exception $e){ return $d; } })) !!};
+const master_tMK = {!! json_encode($trendData->pluck('margin_kotor')) !!};
+const master_tMB = {!! json_encode($trendData->pluck('margin_bersih')) !!};
+
+// Master Data Prediksi
+const master_trainLabels = {!! json_encode($trainingData->pluck('bulan')->map(function($d){ try{ return \Carbon\Carbon::parse($d)->format('M Y'); } catch(\Exception $e){ return $d; } })) !!};
+const master_pLabels = [...master_trainLabels, '{{ $prediksi["label"] ?? "" }}'];
+const master_actPemasukan = {!! json_encode($trainingData->pluck('total_pemasukan')) !!};
+const master_actLaba = {!! json_encode($trainingData->pluck('laba_bersih')) !!};
+const master_predPemasukan = [...master_actPemasukan, {{ $prediksi['pemasukan'] ?? 0 }}];
+const master_predLaba = [...master_actLaba, {{ $prediksi['laba_bersih'] ?? 0 }}];
+
+const availableYearsArr = [...new Set(master_raw.map(r => r.thn))];
+const minYear = availableYearsArr.length > 0 ? Math.min(...availableYearsArr) : {{ date('Y') }};
+const maxYear = {{ date('Y') }};
+
+let activeYear = {{ $tahun }};
+
+// --- Inisialisasi Chart ---
+const lblBulanAll = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+
+const chartBulanan = new Chart(document.getElementById('chartBulanan'), {
     type: 'bar',
     data: {
-        labels: lblBulan,
+        labels: lblBulanAll,
         datasets: [
-            {
-                label: 'Pemasukan',
-                data: bulanan.map(d => d.pemasukan),
-                backgroundColor: 'rgba(26,107,58,0.7)',
-                borderRadius: 4,
-            },
-            {
-                label: 'HPP',
-                data: bulanan.map(d => d.hpp),
-                backgroundColor: 'rgba(13,110,253,0.6)',
-                borderRadius: 4,
-            },
-            {
-                label: 'Operasional',
-                data: bulanan.map(d => d.operasional),
-                backgroundColor: 'rgba(244,161,0,0.6)',
-                borderRadius: 4,
-            },
+            { label: 'Pemasukan', data: [], backgroundColor: 'rgba(26,107,58,0.7)', borderRadius: 4 },
+            { label: 'HPP', data: [], backgroundColor: 'rgba(13,110,253,0.6)', borderRadius: 4 },
+            { label: 'Operasional', data: [], backgroundColor: 'rgba(244,161,0,0.6)', borderRadius: 4 }
         ]
     },
     options: {
-        responsive: true,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } },
-            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtRp(ctx.parsed.y) } }
-        },
+        responsive: true, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtRp(ctx.parsed.y) } } },
         scales: { y: { beginAtZero: true, ticks: { callback: fmtRpShort } } }
     }
 });
 
-// ══════════════════════════════════════════════════════════════════════
-// 2. DOUGHNUT: Komposisi Biaya
-// ══════════════════════════════════════════════════════════════════════
-new Chart(document.getElementById('chartPie'), {
+const chartPie = new Chart(document.getElementById('chartPie'), {
     type: 'doughnut',
     data: {
         labels: ['HPP', 'Operasional', 'Laba Bersih'],
-        datasets: [{
-            data: [
-                {{ $summary['total_hpp'] }},
-                {{ $summary['total_operasional'] }},
-                Math.max(0, {{ $summary['laba_bersih'] }}),
-            ],
-            backgroundColor: ['#0d6efd','#f4a100','#1a6b3a'],
-            hoverOffset: 8, borderWidth: 2,
-        }]
+        datasets: [{ data: [], backgroundColor: ['#0d6efd','#f4a100','#1a6b3a'], hoverOffset: 8, borderWidth: 2 }]
     },
     options: {
         responsive: true, cutout: '55%',
-        plugins: {
-            tooltip: { callbacks: { label: ctx => ctx.label + ': ' + fmtRp(ctx.parsed) } },
-            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12 } }
-        }
+        plugins: { tooltip: { callbacks: { label: ctx => ctx.label + ': ' + fmtRp(ctx.parsed) } }, legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12 } } }
     }
 });
 
-// ══════════════════════════════════════════════════════════════════════
-// 3. TREN MARGIN
-// ══════════════════════════════════════════════════════════════════════
-@if($trendData->count() > 1)
-const tLabels    = {!! json_encode($trendData->pluck('bulan')->map(function($d){ try{ return \Carbon\Carbon::parse($d)->format('d M Y'); } catch(\Exception $e){ return $d; } })) !!};
-const tMK        = {!! json_encode($trendData->pluck('margin_kotor')) !!};
-const tMB        = {!! json_encode($trendData->pluck('margin_bersih')) !!};
-
-new Chart(document.getElementById('chartMargin'), {
+const chartMargin = new Chart(document.getElementById('chartMargin'), {
     type: 'line',
-    data: {
-        labels: tLabels,
-        datasets: [
-            {
-                label: 'Margin Kotor', data: tMK,
-                borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,.06)',
-                fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#0d6efd', borderWidth: 2,
-            },
-            {
-                label: 'Margin Bersih', data: tMB,
-                borderColor: '#1a6b3a', backgroundColor: 'rgba(26,107,58,.06)',
-                fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#1a6b3a', borderWidth: 2,
-            },
-        ]
-    },
+    data: { labels: [], datasets: [
+        { label: 'Margin Kotor', data: [], borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,.06)', fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#0d6efd', borderWidth: 2 },
+        { label: 'Margin Bersih', data: [], borderColor: '#1a6b3a', backgroundColor: 'rgba(26,107,58,.06)', fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#1a6b3a', borderWidth: 2 }
+    ]},
     options: {
-        responsive: true,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%' } },
-            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } }
-        },
+        responsive: true, interaction: { mode: 'index', intersect: false },
+        plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%' } }, legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } } },
         scales: { y: { ticks: { callback: v => v + '%' } } }
     }
 });
 
-// ══════════════════════════════════════════════════════════════════════
-// 4. PREDIKSI (FORECASTING)
-// ══════════════════════════════════════════════════════════════════════
-@if($prediksi)
-const pLabels = [...tLabels, '{{ $prediksi["label"] }}'];
-const actPemasukan = {!! json_encode($trendData->pluck('total_pemasukan')) !!};
-const actLaba = {!! json_encode($trendData->pluck('laba_bersih')) !!};
-
-const predPemasukan = [...actPemasukan, {{ $prediksi['pemasukan'] }}];
-const predLaba = [...actLaba, {{ $prediksi['laba_bersih'] }}];
-
-new Chart(document.getElementById('chartPrediksi'), {
+const chartPrediksi = new Chart(document.getElementById('chartPrediksi'), {
     type: 'line',
-    data: {
-        labels: pLabels,
-        datasets: [
-            {
-                label: 'Pemasukan (Aktual & Prediksi)',
-                data: predPemasukan,
-                borderColor: '#f4a100',
-                backgroundColor: 'rgba(244,161,0,0.1)',
-                fill: true,
-                segment: { borderDash: ctx => ctx.p0DataIndex >= actPemasukan.length - 1 ? [6, 6] : undefined },
-                tension: 0.3, pointRadius: 4, borderWidth: 2
-            },
-            {
-                label: 'Laba Bersih (Aktual & Prediksi)',
-                data: predLaba,
-                borderColor: '#1a6b3a',
-                backgroundColor: 'rgba(26,107,58,0.1)',
-                fill: true,
-                segment: { borderDash: ctx => ctx.p0DataIndex >= actLaba.length - 1 ? [6, 6] : undefined },
-                tension: 0.3, pointRadius: 4, borderWidth: 2
-            }
-        ]
-    },
+    data: { labels: [], datasets: [
+        { label: 'Pemasukan (Aktual & Prediksi)', data: [], borderColor: '#f4a100', backgroundColor: 'rgba(244,161,0,0.1)', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2 },
+        { label: 'Laba Bersih (Aktual & Prediksi)', data: [], borderColor: '#1a6b3a', backgroundColor: 'rgba(26,107,58,0.1)', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2 }
+    ]},
     options: {
-        responsive: true,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtRp(ctx.parsed.y) } },
-            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } }
-        },
+        responsive: true, interaction: { mode: 'index', intersect: false },
+        plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtRp(ctx.parsed.y) } }, legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } } },
         scales: { y: { ticks: { callback: fmtRpShort } } }
     }
 });
-@endif
+
+function updateDynamicCharts(year) {
+    document.getElementById('currentYearDisplay').innerText = year;
+    
+    document.getElementById('btnPrevYear').disabled = (year <= minYear);
+    document.getElementById('btnNextYear').disabled = (year >= maxYear);
+
+    // 1. Filter Data Bar Bulanan & Pie
+    let sumHPP = 0, sumOps = 0, sumLaba = 0;
+    let barPem = Array(12).fill(0), barHPP = Array(12).fill(0), barOps = Array(12).fill(0);
+
+    master_raw.forEach(row => {
+        if (row.thn == year) {
+            sumHPP += parseFloat(row.hpp) || 0;
+            sumOps += parseFloat(row.ops) || 0;
+            sumLaba += parseFloat(row.laba) || 0;
+            let mIdx = row.bln - 1; // 0-11
+            barPem[mIdx] = parseFloat(row.pem) || 0;
+            barHPP[mIdx] = parseFloat(row.hpp) || 0;
+            barOps[mIdx] = parseFloat(row.ops) || 0;
+        }
+    });
+
+    chartBulanan.data.datasets[0].data = barPem;
+    chartBulanan.data.datasets[1].data = barHPP;
+    chartBulanan.data.datasets[2].data = barOps;
+    chartBulanan.update();
+
+    chartPie.data.datasets[0].data = [sumHPP, sumOps, Math.max(0, sumLaba)];
+    chartPie.update();
+
+    // 2. Filter Margin Data
+    const mIdx = master_tLabels.map((l, i) => l.includes(year.toString()) ? i : -1).filter(i => i !== -1);
+    chartMargin.data.labels = mIdx.map(i => master_tLabels[i]);
+    chartMargin.data.datasets[0].data = mIdx.map(i => master_tMK[i]);
+    chartMargin.data.datasets[1].data = mIdx.map(i => master_tMB[i]);
+    chartMargin.update();
+
+    // Filter Prediksi Data
+    const pIdx = master_pLabels.map((l, i) => l.includes(year.toString()) && l !== "" ? i : -1).filter(i => i !== -1);
+    chartPrediksi.data.labels = pIdx.map(i => master_pLabels[i]);
+    chartPrediksi.data.datasets[0].data = pIdx.map(i => master_predPemasukan[i]);
+    chartPrediksi.data.datasets[1].data = pIdx.map(i => master_predLaba[i]);
+
+    // Segment Logic: Hanya putus-putus pada titik terakhir (karena titik terakhir master adalah prediksi)
+    // Jika prediksi point masuk dalam tahun ini, index akhirnya harus putus-putus
+    const actCountInSlice = pIdx.filter(i => i < master_actPemasukan.length).length;
+    chartPrediksi.data.datasets[0].segment = { borderDash: ctx => ctx.p0DataIndex >= actCountInSlice - 1 ? [6, 6] : undefined };
+    chartPrediksi.data.datasets[1].segment = { borderDash: ctx => ctx.p0DataIndex >= actCountInSlice - 1 ? [6, 6] : undefined };
+    
+    chartPrediksi.update();
+}
+
+updateDynamicCharts(activeYear);
+
+document.getElementById('btnPrevYear').addEventListener('click', () => {
+    activeYear--;
+    updateDynamicCharts(activeYear);
+});
+document.getElementById('btnNextYear').addEventListener('click', () => {
+    activeYear++;
+    updateDynamicCharts(activeYear);
+});
 
 @endif
 

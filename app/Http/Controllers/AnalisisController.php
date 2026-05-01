@@ -139,11 +139,11 @@ class AnalisisController extends Controller
     // DASHBOARD + RIWAYAT ANALISIS
     // Menampilkan ringkasan akumulasi + grafik + tabel riwayat
     // ──────────────────────────────────────────────────────────────────────
-    public function riwayat()
+    public function riwayat(\Illuminate\Http\Request $request)
     {
         $userId  = Auth::id();
         $semua   = LaporanAnalisis::where('user_id', $userId);
-        $riwayat = LaporanAnalisis::where('user_id', $userId)->latest()->paginate(10);
+        $riwayat = LaporanAnalisis::where('user_id', $userId)->latest()->take(10)->get();
 
         // Ringkasan akumulasi seluruh data
         $summary = [
@@ -157,8 +157,19 @@ class AnalisisController extends Controller
         $summary['margin_bersih'] = $summary['total_pemasukan'] > 0
             ? round(($summary['laba_bersih'] / $summary['total_pemasukan']) * 100, 2) : 0;
 
-        // Data bulanan untuk grafik bar (1 tahun terakhir)
-        $tahun = date('Y');
+        // Ambil daftar tahun yang tersedia
+        $availableYears = LaporanAnalisis::where('user_id', $userId)
+            ->selectRaw('YEAR(bulan) as tahun')
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun');
+
+        if ($availableYears->isEmpty()) {
+            $availableYears->push(date('Y'));
+        }
+
+        // Data bulanan untuk grafik bar (tahun yang dipilih)
+        $tahun = $request->get('tahun', $availableYears->first() ?? date('Y'));
         $bulanan = LaporanAnalisis::where('user_id', $userId)
             ->whereYear('bulan', $tahun)
             ->selectRaw('MONTH(bulan) as bln, SUM(total_pemasukan) as pemasukan, SUM(total_hpp + total_operasional) as pengeluaran')
@@ -178,7 +189,35 @@ class AnalisisController extends Controller
             ];
         }
 
-        return view('pages.riwayat', compact('riwayat', 'summary', 'chartBulanan', 'tahun'));
+        return view('pages.riwayat', compact('riwayat', 'summary', 'chartBulanan', 'tahun', 'availableYears'));
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // RIWAYAT TRANSAKSI PENUH (PAGINATED & TAHUN)
+    // ──────────────────────────────────────────────────────────────────────
+    public function history(\Illuminate\Http\Request $request)
+    {
+        $userId = Auth::id();
+
+        // Ambil daftar tahun yang tersedia
+        $availableYears = LaporanAnalisis::where('user_id', $userId)
+            ->selectRaw('YEAR(bulan) as tahun')
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun');
+
+        if ($availableYears->isEmpty()) {
+            $availableYears->push(date('Y'));
+        }
+
+        $tahun = $request->get('tahun', $availableYears->first() ?? date('Y'));
+
+        $riwayat = LaporanAnalisis::where('user_id', $userId)
+            ->whereYear('bulan', $tahun)
+            ->latest()
+            ->paginate(15);
+
+        return view('pages.history', compact('riwayat', 'tahun', 'availableYears'));
     }
 
     // ──────────────────────────────────────────────────────────────────────
@@ -209,47 +248,45 @@ class AnalisisController extends Controller
         $summary['margin_bersih'] = $summary['total_pemasukan'] > 0
             ? round(($summary['laba_bersih'] / $summary['total_pemasukan']) * 100, 2) : 0;
 
-        // Tren per transaksi (semua data, urut tanggal)
+        // Tren Bulanan Agregat (Semua Waktu)
         $trendData = LaporanAnalisis::where('user_id', $userId)
-            ->orderBy('bulan')
-            ->get(['bulan', 'nama_umkm', 'total_pemasukan', 'total_hpp', 'total_operasional',
-                   'laba_kotor', 'laba_bersih', 'margin_kotor', 'margin_bersih', 'break_even']);
-
-        // Data bulanan agregat (untuk grafik bar bulanan)
-        $tahun = date('Y');
-        $bulanan = LaporanAnalisis::where('user_id', $userId)
-            ->whereYear('bulan', $tahun)
-            ->selectRaw('MONTH(bulan) as bln,
-                SUM(total_pemasukan) as pemasukan,
-                SUM(total_hpp) as hpp,
-                SUM(total_operasional) as operasional,
-                SUM(laba_bersih) as laba_bersih')
-            ->groupByRaw('MONTH(bulan)')
-            ->orderByRaw('MONTH(bulan)')
-            ->get();
-
-        $namaBulan = ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-        $chartBulanan = [];
-        for ($m = 1; $m <= 12; $m++) {
-            $found = $bulanan->firstWhere('bln', $m);
-            $chartBulanan[] = [
-                'bulan'       => $namaBulan[$m],
-                'pemasukan'   => $found ? (float) $found->pemasukan : 0,
-                'hpp'         => $found ? (float) $found->hpp : 0,
-                'operasional' => $found ? (float) $found->operasional : 0,
-                'laba_bersih' => $found ? (float) $found->laba_bersih : 0,
-            ];
-        }
+            ->selectRaw('
+                YEAR(bulan) as thn, 
+                MONTH(bulan) as bln, 
+                SUM(total_pemasukan) as total_pemasukan, 
+                SUM(total_hpp) as total_hpp, 
+                SUM(total_operasional) as total_operasional, 
+                SUM(laba_kotor) as laba_kotor, 
+                SUM(laba_bersih) as laba_bersih
+            ')
+            ->groupByRaw('YEAR(bulan), MONTH(bulan)')
+            ->orderByRaw('YEAR(bulan), MONTH(bulan)')
+            ->get()
+            ->map(function($item) {
+                // Set hari menjadi 01 untuk parsing JS yang konsisten
+                $item->bulan = sprintf('%04d-%02d-01', $item->thn, $item->bln);
+                $item->margin_kotor = $item->total_pemasukan > 0 ? round(($item->laba_kotor / $item->total_pemasukan) * 100, 2) : 0;
+                $item->margin_bersih = $item->total_pemasukan > 0 ? round(($item->laba_bersih / $item->total_pemasukan) * 100, 2) : 0;
+                return $item;
+            });
 
         // Regresi Linear untuk Prediksi (Forecasting) Bulan Depan
         $prediksi = null;
-        $n = $trendData->count();
+        $currentYear = (int) date('Y');
+        $currentMonth = (int) date('n');
+
+        // Buang bulan berjalan dari data training agar tren tidak jatuh akibat data belum lengkap
+        $trainingData = $trendData->reject(function($item) use ($currentYear, $currentMonth) {
+            return $item->thn == $currentYear && $item->bln == $currentMonth;
+        })->values();
+
+        $n = $trainingData->count();
         if ($n > 1) {
             $sumX = 0; $sumX2 = 0;
             $sumY_pem = 0; $sumXY_pem = 0;
             $sumY_laba = 0; $sumXY_laba = 0;
 
-            foreach ($trendData as $i => $data) {
+            foreach ($trainingData as $i => $data) {
                 $x = $i + 1;
                 $sumX += $x;
                 $sumX2 += ($x * $x);
@@ -271,7 +308,7 @@ class AnalisisController extends Controller
                 $b_laba = ($sumY_laba - ($m_laba * $sumX)) / $n;
                 $pred_laba = ($m_laba * ($n + 1)) + $b_laba;
 
-                $lastDate = \Carbon\Carbon::parse($trendData->last()->bulan);
+                $lastDate = \Carbon\Carbon::parse($trainingData->last()->bulan);
                 $prediksi = [
                     'pemasukan' => max(0, $pred_pem),
                     'laba_bersih' => $pred_laba, // bisa negatif
@@ -284,9 +321,9 @@ class AnalisisController extends Controller
             'hasData'      => true,
             'summary'      => $summary,
             'trendData'    => $trendData,
-            'chartBulanan' => $chartBulanan,
+            'trainingData' => $trainingData,
             'prediksi'     => $prediksi,
-            'tahun'        => $tahun,
+            'tahun'        => date('Y'),
         ]);
     }
 

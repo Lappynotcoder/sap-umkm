@@ -143,6 +143,10 @@
            class="sidebar-link {{ request()->routeIs('analisis') || request()->routeIs('dashboard.show') ? 'active' : '' }}">
             <i class="bi bi-graph-up"></i> Analisis
         </a>
+        <a href="{{ route('history') }}"
+           class="sidebar-link {{ request()->routeIs('history') ? 'active' : '' }}">
+            <i class="bi bi-clock-history"></i> Riwayat
+        </a>
         <a href="{{ route('profile.edit') }}"
            class="sidebar-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
             <i class="bi bi-gear"></i> Pengaturan
