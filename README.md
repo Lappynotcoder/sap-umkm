@@ -13,7 +13,6 @@ Berbeda dari sistem tradisional, SAP-UMKM menyediakan visualisasi yang kaya, ana
 
 Aplikasi ini mendukung pencapaian **Sustainable Development Goals (SDGs)**:
 - **Poin 8:** Pekerjaan Layak dan Pertumbuhan Ekonomi
-- **Poin 9:** Industri, Inovasi, dan Infrastruktur
 
 ---
 
