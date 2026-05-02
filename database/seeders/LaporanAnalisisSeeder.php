@@ -16,7 +16,7 @@ class LaporanAnalisisSeeder extends Seeder
     {
         // Buat User 1: Warung Barokah
         $user1 = User::firstOrCreate(
-            ['email' => 'admin@sapumkm.test'],
+            ['email' => 'budi@sapumkm.test'],
             [
                 'name'      => 'Budi Santoso',
                 'nama_umkm' => 'Warung Barokah',
