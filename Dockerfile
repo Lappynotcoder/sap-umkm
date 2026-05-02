@@ -46,7 +46,7 @@ RUN composer install \
 COPY package.json package-lock.json ./
 
 # Install npm dependencies dan build Vite assets
-RUN npm ci && npm run build && rm -rf node_modules
+RUN npm install && npm run build && rm -rf node_modules
 
 # Copy seluruh source code
 COPY . .
