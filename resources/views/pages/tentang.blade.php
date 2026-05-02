@@ -35,9 +35,9 @@
             </p>
             <p class="text-muted mb-0">
                 SAP-UMKM hadir sebagai solusi digital yang memanfaatkan teknologi <strong>Laravel 12</strong>
-                sebagai backend web, <strong>Python (Pandas)</strong> sebagai mesin komputasi analitik, dan
+                sebagai backend web dan mesin komputasi analitik dengan PHP murni, serta
                 <strong>Chart.js</strong> untuk visualisasi interaktif — sehingga analisis keuangan yang
-                kompleks bisa dilakukan hanya dengan mengunggah file Excel.
+                kompleks bisa dilakukan secara instan hanya dengan menginput data transaksi manual secara langsung.
             </p>
         </div>
     </div>
@@ -49,7 +49,7 @@
                 $arch = [
                     ['icon'=>'bi-browser-chrome','label'=>'Frontend','desc'=>'Blade Template + Chart.js','color'=>'#0d6efd'],
                     ['icon'=>'bi-server','label'=>'Backend','desc'=>'Laravel 12 (PHP 8.2)','color'=>'#1a6b3a'],
-                    ['icon'=>'bi-filetype-py','label'=>'Analitik','desc'=>'Python 3.9+ (Pandas, OpenPyXL)','color'=>'#f4a100'],
+                    ['icon'=>'bi-calculator','label'=>'Analitik','desc'=>'PHP Native Processing','color'=>'#f4a100'],
                     ['icon'=>'bi-database-fill','label'=>'Database','desc'=>'MySQL 8.0','color'=>'#dc3545'],
                 ];
                 @endphp
