@@ -1,5 +1,4 @@
 services:
-
   # -------------------------------------------------------
   # APP — PHP-FPM (Laravel)
   # -------------------------------------------------------
@@ -35,9 +34,11 @@ services:
     ports:
       - "80:80"
     volumes:
-      # Config nginx
+      # 1. Pastikan mapping source code utama ke dalam nginx
+      - ./:/var/www/html:ro
+      # 2. Config nginx tetap diarahkan ke file config kita
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      # Akses ke public assets (hasil Vite build ada di dalam image app)
+      # 3. Storage untuk file upload
       - storage_data:/var/www/html/storage:ro
     networks:
       - sap_network
