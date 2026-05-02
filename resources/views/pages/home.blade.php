@@ -1,87 +1,105 @@
-@extends('layouts.app')
-@section('title', 'Beranda')
-
-@push('styles')
-<style>
-    .hero-landing {
-        min-height: 80vh;
-        display: flex; align-items: center; justify-content: center;
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f0 100%);
-    }
-    .hero-card {
-        background: #fff;
-        border-radius: 20px;
-        padding: 3.5rem 3rem;
-        text-align: center;
-        max-width: 520px;
-        box-shadow: 0 20px 60px rgba(0,0,0,.08);
-    }
-    .hero-card h1 {
-        font-family: 'Inter', sans-serif;
-        font-weight: 800;
-        font-size: 2.4rem;
-        color: #111827;
-        line-height: 1.2;
-        margin-bottom: 0.75rem;
-    }
-    .hero-card .subtitle {
-        color: #6b7280;
-        font-size: 0.95rem;
-        margin-bottom: 2rem;
-    }
-    .hero-card .subtitle strong {
-        color: #1a6b3a;
-    }
-    .btn-hero-login {
-        background: linear-gradient(135deg, #f59e0b, #f97316);
-        color: #fff; border: none;
-        padding: 0.7rem 2.5rem; border-radius: 50px;
-        font-weight: 600; font-size: 0.95rem;
-        transition: all 0.3s;
-        box-shadow: 0 4px 15px rgba(245,158,11,0.3);
-    }
-    .btn-hero-login:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(245,158,11,0.4);
-        color: #fff;
-    }
-    .btn-hero-register {
-        background: linear-gradient(135deg, #f97316, #ef4444);
-        color: #fff; border: none;
-        padding: 0.7rem 2.5rem; border-radius: 50px;
-        font-weight: 600; font-size: 0.95rem;
-        transition: all 0.3s;
-        box-shadow: 0 4px 15px rgba(249,115,22,0.3);
-    }
-    .btn-hero-register:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(249,115,22,0.4);
-        color: #fff;
-    }
-</style>
-@endpush
-
-@section('content')
-<div class="hero-landing">
-    <div class="hero-card">
-        <h1>ANALISIS<br>BISNIS UMKM</h1>
-        <p class="subtitle">
-            Kelola & analisis keuangan <strong>bisnis UMKM</strong> Anda dengan mudah dan akurat.
-        </p>
-        <div class="d-flex justify-content-center gap-3">
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ config('app.name', 'SAP - UMKM') }}</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1A374D;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier Prime', 'Courier New', Courier, monospace;
+            margin: 0;
+        }
+        .landing-card {
+            background-color: #F1F5F9;
+            width: 100%;
+            max-width: 900px;
+            padding: 5rem 2rem;
+            margin: 2rem;
+            border-radius: 0;
+            box-shadow: none;
+            text-align: center;
+        }
+        .landing-title {
+            font-size: 4rem;
+            font-weight: 400;
+            color: #1A374D;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+        .landing-subtitle {
+            font-size: 1.1rem;
+            color: #1A374D;
+            margin-bottom: 3.5rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .landing-actions {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+        }
+        .btn-landing {
+            background-color: #F2AB39;
+            color: #fff;
+            border: none;
+            border-radius: 50rem;
+            padding: 0.8rem 4rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-landing:hover {
+            background-color: #d9962a;
+            color: #fff;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 576px) {
+            .landing-title {
+                font-size: 2.5rem;
+            }
+            .landing-actions {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .btn-landing {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-card">
+        <div class="landing-title">
+            SISTEM SAP<br>UMKM
+        </div>
+        <div class="landing-subtitle">
+            Naikin level bisnis kamu mulai sekarang!
+        </div>
+        
+        <div class="landing-actions">
             @auth
-                <a href="{{ route('riwayat') }}" class="btn btn-hero-login">
-                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                </a>
+                <a href="{{ url('/dashboard') }}" class="btn-landing">Dashboard</a>
             @else
-                <a href="{{ route('login') }}" class="btn btn-hero-login">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
-                </a>
-                <a href="{{ route('register') }}" class="btn btn-hero-register">
-                    <i class="bi bi-person-plus me-2"></i>Register
-                </a>
+                <a href="{{ route('login') }}" class="btn-landing">Login</a>
+                
+                @if (Route::has('register'))
+                    <a href="{{ route('register') }}" class="btn-landing">Register</a>
+                @endif
             @endauth
         </div>
     </div>
-</div>
-@endsection
+</body>
+</html>

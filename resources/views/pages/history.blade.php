@@ -60,7 +60,7 @@
                     </span>
                 </td>
                 <td class="text-center">
-                    <a href="{{ route('dashboard.show', $r->id) }}" class="btn btn-sm btn-outline-success" title="Lihat Detail">
+                    <a href="{{ route('dashboard.show', $r->id) }}" class="btn btn-sm btn-outline-success btn-pill" title="Lihat Detail" style="color: #34A853; border-color: #34A853;">
                         <i class="bi bi-eye"></i> Detail
                     </a>
                 </td>
@@ -80,7 +80,7 @@
         <i class="bi bi-inbox d-block mb-3 text-muted" style="font-size: 3rem;"></i>
         <h5>Belum Ada Riwayat Transaksi</h5>
         <p class="text-muted">Mulai catat transaksi keuangan UMKM Anda sekarang.</p>
-        <a href="{{ route('upload.form') }}" class="btn btn-success mt-2">
+        <a href="{{ route('upload.form') }}" class="btn btn-success mt-2 btn-pill" style="background-color: #F2AB39; border-color: #F2AB39;">
             <i class="bi bi-plus-circle me-1"></i>Input Transaksi Pertama
         </a>
     </div>

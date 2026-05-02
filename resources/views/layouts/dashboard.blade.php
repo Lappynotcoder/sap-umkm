@@ -15,13 +15,14 @@
 
     <style>
         :root {
-            --sidebar-bg: #111827;
-            --sidebar-hover: #1f2937;
-            --sidebar-active: #1a6b3a;
-            --topbar-bg: #111827;
-            --accent: #22c55e;
-            --accent-orange: #f59e0b;
-            --body-bg: #f0f2f5;
+            --sidebar-bg: #1A374D;
+            --sidebar-hover: #406882;
+            --sidebar-active: #406882;
+            --topbar-bg: #1A374D;
+            --accent: #F2AB39;
+            --accent-green: #34A853;
+            --accent-red: #EF4444;
+            --body-bg: #F1F5F9;
             --sidebar-w: 250px;
         }
 
@@ -30,25 +31,13 @@
 
         /* ── Sidebar ── */
         .sidebar {
-            width: var(--sidebar-w); min-height: 100vh;
+            width: var(--sidebar-w); height: calc(100vh - 60px);
             background: var(--sidebar-bg);
-            position: fixed; left: 0; top: 0; z-index: 1000;
+            position: fixed; left: 0; top: 60px; z-index: 1000;
             display: flex; flex-direction: column;
             transition: transform 0.3s;
+            border-right: 1px solid rgba(255,255,255,0.05);
         }
-
-        .sidebar-brand {
-            padding: 1.2rem 1.25rem;
-            display: flex; align-items: center; gap: 0.7rem;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
-        .sidebar-brand-icon {
-            width: 36px; height: 36px;
-            background: var(--accent); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .sidebar-brand-text { font-size: 1.05rem; font-weight: 700; color: #fff; }
-        .sidebar-brand-text span { color: rgba(255,255,255,0.45); font-weight: 400; }
 
         .sidebar-nav { padding: 1rem 0.7rem; flex: 1; }
 
@@ -64,38 +53,45 @@
         .sidebar-link i { font-size: 1.05rem; width: 20px; text-align: center; }
 
         /* ── Main ── */
-        .main-wrapper { margin-left: var(--sidebar-w); min-height: 100vh; }
+        .main-wrapper { margin-left: var(--sidebar-w); min-height: 100vh; padding-top: 60px; }
 
         /* ── Top bar ── */
         .topbar {
             background: var(--topbar-bg);
-            padding: 0.6rem 1.75rem;
-            display: flex; justify-content: flex-end; align-items: center;
-            gap: 1rem;
+            height: 60px;
+            padding: 0 1.75rem;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1050;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .topbar-bell { color: rgba(255,255,255,0.5); font-size: 1.15rem; cursor: pointer; transition: color 0.2s; }
-        .topbar-bell:hover { color: var(--accent); }
-        .topbar-avatar {
-            width: 32px; height: 32px; border-radius: 50%;
-            background: var(--accent); color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 600; font-size: 0.75rem;
+        .topbar-brand {
+            font-size: 1.1rem; font-weight: 700; color: #fff; text-decoration: none; letter-spacing: 0.5px;
         }
+        .topbar-brand:hover { color: #fff; }
+        
         .topbar .dropdown-toggle::after { display: none; }
-        .topbar .user-name { color: rgba(255,255,255,0.8); font-size: 0.82rem; font-weight: 500; }
+        .topbar .user-name { color: rgba(255,255,255,0.9); font-size: 0.9rem; font-weight: 500; }
 
         /* ── Content ── */
         .page-content { padding: 1.5rem 1.75rem; }
 
         /* ── Cards ── */
-        .card-metric {
-            border: none; border-radius: 10px;
-            box-shadow: 0 1px 8px rgba(0,0,0,.06);
+        .card-metric, .chart-card {
+            border: 1.5px solid #2d3748;
+            border-radius: 12px;
+            box-shadow: none;
             background: #fff;
         }
 
         .badge-profit-pos { background: #dcfce7; color: #166534; }
         .badge-profit-neg { background: #fee2e2; color: #991b1b; }
+
+        /* ── Table & Buttons ── */
+        .table thead th { background-color: #406882 !important; color: #fff !important; border-bottom: 2px solid #2d3748 !important; font-weight: 600; }
+        .table tbody tr { border-bottom: 1px solid #e2e8f0; }
+        
+        .btn-pill { border-radius: 50rem !important; padding: 0.5rem 1.5rem; font-weight: 600; transition: all 0.3s ease; }
+        .btn-pill:hover { filter: brightness(0.9); }
 
         /* ── Responsive ── */
         .sidebar-toggler { display: none; }
@@ -120,12 +116,7 @@
 {{-- SIDEBAR --}}
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-        <div class="sidebar-brand-icon">
-            <i class="bi bi-bar-chart-line-fill" style="color:#fff;font-size:1rem"></i>
-        </div>
-        <div class="sidebar-brand-text">SAP<span>-UMKM</span></div>
-    </div>
+    <!-- removed sidebar brand -->
     <nav class="sidebar-nav">
         <a href="{{ route('riwayat') }}"
            class="sidebar-link {{ request()->routeIs('riwayat') ? 'active' : '' }}">
@@ -157,14 +148,17 @@
 {{-- MAIN --}}
 <div class="main-wrapper">
     <header class="topbar">
-        <button class="btn btn-sm sidebar-toggler me-auto text-white" onclick="toggleSidebar()">
-            <i class="bi bi-list fs-5"></i>
-        </button>
-        <div class="topbar-bell"><i class="bi bi-bell"></i></div>
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-sm sidebar-toggler text-white" onclick="toggleSidebar()">
+                <i class="bi bi-list fs-5"></i>
+            </button>
+            <a href="{{ route('riwayat') }}" class="topbar-brand">SAP - UMKM</a>
+        </div>
+        
         <div class="dropdown">
-            <div class="d-flex align-items-center gap-2 dropdown-toggle" role="button" data-bs-toggle="dropdown">
-                <div class="topbar-avatar">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</div>
-                <span class="user-name d-none d-sm-inline">{{ Auth::user()->name ?? 'User' }}</span>
+            <div class="d-flex align-items-center gap-2 dropdown-toggle text-white" role="button" data-bs-toggle="dropdown" style="cursor:pointer">
+                <span class="user-name d-none d-sm-inline">{{ explode(' ', Auth::user()->name ?? 'User')[0] }}</span>
+                <i class="bi bi-person-circle fs-5"></i>
             </div>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                 <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>Profile</a></li>

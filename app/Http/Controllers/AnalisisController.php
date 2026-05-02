@@ -14,6 +14,9 @@ class AnalisisController extends Controller
     // ──────────────────────────────────────────────────────────────────────
     public function index()
     {
+        if (Auth::check()) {
+            return redirect()->route('riwayat');
+        }
         return view('pages.home');
     }
 

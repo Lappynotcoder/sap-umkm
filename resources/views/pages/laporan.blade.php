@@ -22,7 +22,7 @@
     .summary-table td.val-negatif { color: #dc3545; font-weight: 700; }
 
     .detail-table thead th {
-        background: #111827; color: rgba(255,255,255,.8);
+        background: #406882; color: #fff;
         font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px;
     }
 
@@ -34,8 +34,8 @@
     }
 
     .btn-cetak {
-        background: linear-gradient(135deg, #1a6b3a, #22c55e);
-        color: #fff; border: none; border-radius: 10px;
+        background: #F2AB39;
+        color: #fff; border: none;
         padding: 0.6rem 1.8rem; font-weight: 600;
         transition: all 0.3s;
     }
@@ -79,14 +79,25 @@
             </select>
         </div>
         <div class="col-md-3">
-            <button type="submit" class="btn btn-success btn-sm">
+            <button type="submit" class="btn btn-success btn-sm btn-pill" style="background-color: #34A853; border: none;">
                 <i class="bi bi-funnel me-1"></i>Filter
             </button>
         </div>
         <div class="col-md-3 text-end">
-            <button type="button" onclick="window.print()" class="btn btn-cetak btn-sm">
-                <i class="bi bi-printer me-1"></i>Cetak PDF
-            </button>
+            @php
+                $currentYear = (int) date('Y');
+                $currentMonth = (int) date('n');
+                $isPastMonth = ($tahunFilter < $currentYear) || ($tahunFilter == $currentYear && $bulanFilter < $currentMonth);
+            @endphp
+            @if($isPastMonth)
+                <button type="button" onclick="window.print()" class="btn btn-cetak btn-sm btn-pill">
+                    <i class="bi bi-printer me-1"></i>Cetak PDF
+                </button>
+            @else
+                <button type="button" class="btn btn-secondary btn-sm btn-pill" disabled title="Laporan hanya bisa dicetak setelah bulan ini berakhir" style="opacity: 0.6; cursor: not-allowed;">
+                    <i class="bi bi-printer me-1"></i>Cetak PDF
+                </button>
+            @endif
         </div>
     </form>
 </div>
