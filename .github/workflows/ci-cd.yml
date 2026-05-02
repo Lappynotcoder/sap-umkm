@@ -1,0 +1,71 @@
+name: CI/CD Pipeline SAP-UMKM
+
+on:
+  push:
+    branches: ["main", "dev-mode"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  # ==========================================
+  # JOB 1: CONTINUOUS INTEGRATION (TESTING)
+  # ==========================================
+  test:
+    name: Run Tests
+    runs-on: [self-hosted, production]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment Variables
+        run: |
+          cp .env.example .env
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=:memory:/' .env
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Generate Application Key
+        run: php artisan key:generate
+
+      - name: Build Frontend Assets (Vite)
+        run: |
+          npm install
+          npm run build
+
+      - name: Run PHPUnit Tests
+        run: php artisan test
+
+  # ==========================================
+  # JOB 2: CONTINUOUS DEPLOYMENT (PRODUCTION)
+  # ==========================================
+  deploy:
+    name: Deploy to Production
+    needs: test
+    runs-on: [self-hosted, production]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Production .env File
+        run: |
+          echo "${{ secrets.ENV_PRODUCTION }}" > .env
+
+      - name: Build and Start Docker Containers
+        run: docker compose up -d --build
+
+      - name: Run Database Migrations
+        run: docker compose exec -T app php artisan migrate --force
+
+      - name: Restart Queue Worker
+        run: docker compose exec -T app php artisan queue:restart
+
+      - name: Optimize Laravel (Cache)
+        run: |
+          docker compose exec -T app php artisan config:cache
+          docker compose exec -T app php artisan route:cache
+          docker compose exec -T app php artisan view:cache
