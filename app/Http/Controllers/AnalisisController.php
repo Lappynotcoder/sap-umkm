@@ -124,7 +124,7 @@ class AnalisisController extends Controller
     public function dashboard($id)
     {
         $laporan       = LaporanAnalisis::where('user_id', Auth::id())->findOrFail($id);
-        $detail        = json_decode($laporan->detail_json, true) ?? [];
+        $detail        = is_string($laporan->detail_json) ? json_decode($laporan->detail_json, true) ?? [] : $laporan->detail_json ?? [];
 
         // Ambil semua laporan UMKM yang sama untuk grafik tren multi-bulan
         $trendData     = LaporanAnalisis::where('user_id', Auth::id())
@@ -139,7 +139,7 @@ class AnalisisController extends Controller
     // DASHBOARD + RIWAYAT ANALISIS
     // Menampilkan ringkasan akumulasi + grafik + tabel riwayat
     // ──────────────────────────────────────────────────────────────────────
-    public function riwayat(\Illuminate\Http\Request $request)
+    public function riwayat(Request $request)
     {
         $userId  = Auth::id();
         $semua   = LaporanAnalisis::where('user_id', $userId);
@@ -195,7 +195,7 @@ class AnalisisController extends Controller
     // ──────────────────────────────────────────────────────────────────────
     // RIWAYAT TRANSAKSI PENUH (PAGINATED & TAHUN)
     // ──────────────────────────────────────────────────────────────────────
-    public function history(\Illuminate\Http\Request $request)
+    public function history(Request $request)
     {
         $userId = Auth::id();
 
@@ -249,26 +249,33 @@ class AnalisisController extends Controller
             ? round(($summary['laba_bersih'] / $summary['total_pemasukan']) * 100, 2) : 0;
 
         // Tren Bulanan Agregat (Semua Waktu)
-        $trendData = LaporanAnalisis::where('user_id', $userId)
-            ->selectRaw('
-                YEAR(bulan) as thn, 
-                MONTH(bulan) as bln, 
-                SUM(total_pemasukan) as total_pemasukan, 
-                SUM(total_hpp) as total_hpp, 
-                SUM(total_operasional) as total_operasional, 
-                SUM(laba_kotor) as laba_kotor, 
-                SUM(laba_bersih) as laba_bersih
-            ')
-            ->groupByRaw('YEAR(bulan), MONTH(bulan)')
-            ->orderByRaw('YEAR(bulan), MONTH(bulan)')
-            ->get()
-            ->map(function($item) {
-                // Set hari menjadi 01 untuk parsing JS yang konsisten
-                $item->bulan = sprintf('%04d-%02d-01', $item->thn, $item->bln);
-                $item->margin_kotor = $item->total_pemasukan > 0 ? round(($item->laba_kotor / $item->total_pemasukan) * 100, 2) : 0;
-                $item->margin_bersih = $item->total_pemasukan > 0 ? round(($item->laba_bersih / $item->total_pemasukan) * 100, 2) : 0;
-                return $item;
-            });
+        $trendDataRaw = LaporanAnalisis::where('user_id', $userId)
+            ->orderBy('bulan')
+            ->get();
+
+        $trendData = $trendDataRaw->groupBy(function($item) {
+            return \Carbon\Carbon::parse($item->bulan)->format('Y-m');
+        })->map(function($group) {
+            $firstItem = $group->first();
+            $date = \Carbon\Carbon::parse($firstItem->bulan);
+            
+            $total_pemasukan = $group->sum('total_pemasukan');
+            $laba_kotor = $group->sum('laba_kotor');
+            $laba_bersih = $group->sum('laba_bersih');
+
+            return (object) [
+                'thn' => (int) $date->year,
+                'bln' => (int) $date->month,
+                'bulan' => $date->format('Y-m-01'), 
+                'total_pemasukan' => $total_pemasukan,
+                'total_hpp' => $group->sum('total_hpp'),
+                'total_operasional' => $group->sum('total_operasional'),
+                'laba_kotor' => $laba_kotor,
+                'laba_bersih' => $laba_bersih,
+                'margin_kotor' => $total_pemasukan > 0 ? round(($laba_kotor / $total_pemasukan) * 100, 2) : 0,
+                'margin_bersih' => $total_pemasukan > 0 ? round(($laba_bersih / $total_pemasukan) * 100, 2) : 0,
+            ];
+        })->values();
 
         // Regresi Linear untuk Prediksi (Forecasting) Bulan Depan
         $prediksi = null;
