@@ -163,13 +163,11 @@
     </div>
 </div>
 @else
-<div class="card card-metric">
-    <div class="empty-state">
-        <i class="bi bi-inbox d-block mb-3"></i>
-        <p>Belum ada data transaksi.</p>
-        <a href="{{ route('upload.form') }}" class="btn btn-success">
-            <i class="bi bi-plus-circle me-1"></i>Input Transaksi Pertama
-        </a>
+<div class="text-center" style="margin-top: 10rem;">
+    <div style="display: inline-block; text-align: left; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 2.5rem; color: #1A374D; line-height: 1.5;">
+        Data Masih Kosong!<br>
+        Silahkan Input dulu di<br>
+        <a href="{{ route('upload.form') }}" style="color: #F2AB39; text-decoration: none;">Keuangan</a>
     </div>
 </div>
 @endif
@@ -195,13 +193,13 @@ new Chart(document.getElementById('chartBulanan'), {
             {
                 label: 'Pemasukan',
                 data: pemasukan,
-                backgroundColor: 'rgba(26,107,58,0.75)',
+                backgroundColor: '#34A853',
                 borderRadius: 4,
             },
             {
                 label: 'Pengeluaran',
                 data: pengeluaran,
-                backgroundColor: 'rgba(220,53,69,0.6)',
+                backgroundColor: '#EF4444',
                 borderRadius: 4,
             }
         ]
@@ -214,6 +212,7 @@ new Chart(document.getElementById('chartBulanan'), {
             tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtRp(ctx.parsed.y) } }
         },
         scales: {
+            x: { grid: { display: false } },
             y: {
                 beginAtZero: true,
                 ticks: {

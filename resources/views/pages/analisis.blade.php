@@ -248,15 +248,18 @@ const chartBulanan = new Chart(document.getElementById('chartBulanan'), {
     data: {
         labels: lblBulanAll,
         datasets: [
-            { label: 'Pemasukan', data: [], backgroundColor: 'rgba(26,107,58,0.7)', borderRadius: 4 },
-            { label: 'HPP', data: [], backgroundColor: 'rgba(13,110,253,0.6)', borderRadius: 4 },
-            { label: 'Operasional', data: [], backgroundColor: 'rgba(244,161,0,0.6)', borderRadius: 4 }
+            { label: 'Pemasukan', data: [], backgroundColor: '#34A853', borderRadius: 4 },
+            { label: 'HPP', data: [], backgroundColor: '#406882', borderRadius: 4 },
+            { label: 'Operasional', data: [], backgroundColor: '#F2AB39', borderRadius: 4 }
         ]
     },
     options: {
         responsive: true, interaction: { mode: 'index', intersect: false },
         plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtRp(ctx.parsed.y) } } },
-        scales: { y: { beginAtZero: true, ticks: { callback: fmtRpShort } } }
+        scales: { 
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, ticks: { callback: fmtRpShort } } 
+        }
     }
 });
 
@@ -264,10 +267,10 @@ const chartPie = new Chart(document.getElementById('chartPie'), {
     type: 'doughnut',
     data: {
         labels: ['HPP', 'Operasional', 'Laba Bersih'],
-        datasets: [{ data: [], backgroundColor: ['#0d6efd','#f4a100','#1a6b3a'], hoverOffset: 8, borderWidth: 2 }]
+        datasets: [{ data: [], backgroundColor: ['#406882','#F2AB39','#34A853'], hoverOffset: 8, borderWidth: 2 }]
     },
     options: {
-        responsive: true, cutout: '55%',
+        responsive: true, cutout: '65%',
         plugins: { tooltip: { callbacks: { label: ctx => ctx.label + ': ' + fmtRp(ctx.parsed) } }, legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12 } } }
     }
 });
@@ -275,26 +278,32 @@ const chartPie = new Chart(document.getElementById('chartPie'), {
 const chartMargin = new Chart(document.getElementById('chartMargin'), {
     type: 'line',
     data: { labels: [], datasets: [
-        { label: 'Margin Kotor', data: [], borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,.06)', fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#0d6efd', borderWidth: 2 },
-        { label: 'Margin Bersih', data: [], borderColor: '#1a6b3a', backgroundColor: 'rgba(26,107,58,.06)', fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#1a6b3a', borderWidth: 2 }
+        { label: 'Margin Kotor', data: [], borderColor: '#F2AB39', backgroundColor: 'rgba(242,171,57,.06)', fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#F2AB39', borderWidth: 2 },
+        { label: 'Margin Bersih', data: [], borderColor: '#34A853', backgroundColor: 'rgba(52,168,83,.06)', fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#34A853', borderWidth: 2 }
     ]},
     options: {
         responsive: true, interaction: { mode: 'index', intersect: false },
         plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%' } }, legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } } },
-        scales: { y: { ticks: { callback: v => v + '%' } } }
+        scales: { 
+            x: { grid: { display: false } },
+            y: { ticks: { callback: v => v + '%' } } 
+        }
     }
 });
 
 const chartPrediksi = new Chart(document.getElementById('chartPrediksi'), {
     type: 'line',
     data: { labels: [], datasets: [
-        { label: 'Pemasukan (Aktual & Prediksi)', data: [], borderColor: '#f4a100', backgroundColor: 'rgba(244,161,0,0.1)', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2 },
-        { label: 'Laba Bersih (Aktual & Prediksi)', data: [], borderColor: '#1a6b3a', backgroundColor: 'rgba(26,107,58,0.1)', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2 }
+        { label: 'Pemasukan (Aktual & Prediksi)', data: [], borderColor: '#406882', backgroundColor: 'rgba(64,104,130,0.1)', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2 },
+        { label: 'Laba Bersih (Aktual & Prediksi)', data: [], borderColor: '#34A853', backgroundColor: 'rgba(52,168,83,0.1)', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2 }
     ]},
     options: {
         responsive: true, interaction: { mode: 'index', intersect: false },
         plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtRp(ctx.parsed.y) } }, legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } } },
-        scales: { y: { ticks: { callback: fmtRpShort } } }
+        scales: { 
+            x: { grid: { display: false } },
+            y: { ticks: { callback: fmtRpShort } } 
+        }
     }
 });
 
