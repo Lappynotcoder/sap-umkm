@@ -43,7 +43,11 @@ RUN composer install \
     --no-scripts
 
 # Copy package.json untuk npm
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json* ./
+
+# Copy konfigurasi Vite dan folder resources agar Vite tahu apa yang harus di-build
+COPY vite.config.js ./
+COPY resources/ ./resources/
 
 # Install npm dependencies dan build Vite assets
 RUN npm install && npm run build && rm -rf node_modules
