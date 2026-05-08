@@ -11,10 +11,12 @@ services:
     env_file:
       - .env
     volumes:
-      - app_code:/var/www/html
+      # Bind mount root folder agar update kode langsung terbaca
+      - ./:/var/www/html
+      # Anonymous volume untuk memproteksi folder vendor dari Dockerfile agar tidak tertimpa bind mount
+      - /var/www/html/vendor
       - storage_data:/var/www/html/storage
       - bootstrap_cache:/var/www/html/bootstrap/cache
-      - build_assets:/var/www/html/public/build
     networks:
       - sap_network
     depends_on:
@@ -35,10 +37,10 @@ services:
     ports:
       - "80:80"
     volumes:
-      - app_code:/var/www/html:ro
+      # Bind mount root folder secara read-only
+      - ./:/var/www/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - storage_data:/var/www/html/storage:ro
-      - build_assets:/var/www/html/public/build
     networks:
       - sap_network
     depends_on:
@@ -94,6 +96,9 @@ services:
     env_file:
       - .env
     volumes:
+      # Samakan dengan app agar antrean memproses kode terbaru
+      - ./:/var/www/html
+      - /var/www/html/vendor
       - storage_data:/var/www/html/storage
       - bootstrap_cache:/var/www/html/bootstrap/cache
     networks:
@@ -117,14 +122,10 @@ volumes:
     driver: local
   bootstrap_cache:
     driver: local
-  build_assets:
-    driver: local
-  app_code:
-    driver: local
+
 # -------------------------------------------------------
 # NETWORKS
 # -------------------------------------------------------
 networks:
   sap_network:
     driver: bridge
-#---

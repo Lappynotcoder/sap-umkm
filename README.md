@@ -7,11 +7,13 @@ Berbeda dari sistem tradisional, SAP-UMKM menyediakan visualisasi yang kaya, ana
 ---
 
 ## Tim Pengembang
+
 - **Firly Nurrohman**
 - **Ade Ariansyah Anggoro**
 - **Bintang Fajar Jolya Anggara**
 
 Aplikasi ini mendukung pencapaian **Sustainable Development Goals (SDGs)**:
+
 - **Poin 8:** Pekerjaan Layak dan Pertumbuhan Ekonomi
 
 ---
@@ -93,16 +95,18 @@ Aplikasi ini mendukung pencapaian **Sustainable Development Goals (SDGs)**:
 ## Cara Instalasi & Menjalankan
 
 1. **Klon Repositori**
-   ```bash
-   git clone <url-repo-anda>
-   cd SAP-umkm
-   ```
+
+    ```bash
+    git clone <url-repo-anda>
+    cd SAP-umkm
+    ```
 
 2. **Install Dependensi Backend & Frontend**
-   ```bash
-   composer install
-   npm install
-   ```
+
+    ```bash
+    composer install
+    npm install
+    ```
 
 3. **Konfigurasi Environment**
    ```bash
@@ -119,9 +123,10 @@ Aplikasi ini mendukung pencapaian **Sustainable Development Goals (SDGs)**:
    ```
 
 4. **Generate Application Key**
-   ```bash
-   php artisan key:generate
-   ```
+
+    ```bash
+    php artisan key:generate
+    ```
 
 5. **Jalankan Migrasi Database dan Data Dummy**
    ```bash
