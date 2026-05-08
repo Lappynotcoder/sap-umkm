@@ -257,6 +257,7 @@
                 <tr>
                     @php
                         $colSpan = 2;
+                        if(isset($detail[0]['tanggal'])) $colSpan++;
                         if(isset($detail[0]['keterangan'])) $colSpan++;
                         if(isset($detail[0]['kuantitas'])) $colSpan++;
                         if(isset($detail[0]['nilai_satuan'])) $colSpan++;

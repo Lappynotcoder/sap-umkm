@@ -97,22 +97,46 @@
     .rasio-value { font-size: 1.2rem; font-weight: 800; margin-top: 0.2rem; }
 
     /* ── Detail Table ── */
-    .detail-table thead th {
-        background: #406882; color: #fff;
-        font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;
-        padding: 0.6rem 0.5rem;
-    }
-    .detail-table tbody td {
-        font-size: 0.85rem; padding: 0.45rem 0.5rem;
-        border-bottom: 1px solid #f0f0f0;
+    .detail-section { margin-top: 2rem; }
+    .detail-section-title {
+        font-size: 0.82rem; font-weight: 700; color: #406882;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid #406882;
+        margin-bottom: 0;
     }
 
-    .report-footer {
-        margin-top: 2rem; padding-top: 1rem;
-        border-top: 1px solid #dee2e6;
-        text-align: center;
+    .detail-table { width: 100%; border-collapse: collapse; }
+    .detail-table thead th {
+        background: #f8f9fa; color: #374151;
+        font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;
+        padding: 0.55rem 0.5rem;
+        border-bottom: 2px solid #dee2e6;
     }
-    .report-footer p { font-size: 0.78rem; color: #adb5bd; margin: 0; }
+    .detail-table tbody td {
+        font-size: 0.85rem; padding: 0.4rem 0.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .detail-table tfoot td {
+        font-weight: 700; padding: 0.55rem 0.5rem;
+        border-top: 2px solid #334155;
+        font-size: 0.85rem;
+    }
+
+    /* ── Signature area ── */
+    .signature-area {
+        margin-top: 2.5rem; padding-top: 1rem;
+        border-top: 1px solid #e2e8f0;
+    }
+    .sig-block {
+        text-align: center; min-width: 180px;
+    }
+    .sig-line {
+        border-top: 1px solid #111; width: 160px;
+        margin: 3rem auto 0.3rem;
+    }
+    .sig-name { font-size: 0.82rem; font-weight: 600; }
+    .sig-title { font-size: 0.72rem; color: #6c757d; }
 
     .btn-cetak {
         background: #F2AB39;
@@ -128,12 +152,36 @@
 
     /* ── Print Styles ── */
     @media print {
-        .filter-bar, .d-print-none { display: none !important; }
-        .report-paper { box-shadow: none !important; padding: 0; max-width: 100%; }
-        .main-wrapper { margin-left: 0; }
-        body { font-size: 10pt; }
+        /* Sembunyikan semua UI navigasi */
+        .filter-bar, .d-print-none,
+        .sidebar, .top-bar, .breadcrumb,
+        nav, header { display: none !important; }
+
+        /* Hapus margin sidebar */
+        .main-wrapper, .main-content { margin-left: 0 !important; padding: 0 !important; }
+        body { background: #fff !important; font-size: 10pt; margin: 0; }
+
+        /* Paper styling */
+        .report-paper {
+            box-shadow: none !important;
+            padding: 1.5cm 2cm;
+            max-width: 100%;
+            border: none;
+        }
+
+        /* Warna cetak */
         .pl-statement .pl-grandtotal td { background: #f0fdf4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .detail-table thead th { background: #406882 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .detail-table thead th { background: #f8f9fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .rasio-box { border-color: #999 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        /* Avoid page break in sections */
+        .pl-statement, .detail-section, .rasio-row { break-inside: avoid; }
+
+        /* Hapus URL/header/footer browser saat print */
+        @page {
+            margin: 1cm 1.5cm;
+            size: A4 portrait;
+        }
     }
 
     /* ── Mobile ── */
@@ -144,6 +192,7 @@
         .rasio-box { min-width: 100px; padding: 0.7rem 0.5rem; }
         .rasio-value { font-size: 1rem; }
         .pl-statement td, .pl-statement th { font-size: 0.82rem; }
+        .signature-area { flex-direction: column; align-items: center; }
     }
 </style>
 @endpush
@@ -200,8 +249,18 @@
 @foreach($laporanBulan as $laporan)
 @php
     $detail = is_string($laporan->detail_json) ? json_decode($laporan->detail_json, true) : ($laporan->detail_json ?? []);
-    // Format sebagai bulan & tahun (laporan bulanan)
     $periodLabel = \Carbon\Carbon::parse($laporan->bulan)->translatedFormat('F Y');
+
+    // Kelompokkan detail per kategori untuk sub-total
+    $grupPemasukan = [];
+    $grupHpp = [];
+    $grupOps = [];
+    foreach ($detail as $d) {
+        $katL = strtolower($d['kategori'] ?? '');
+        if ($katL === 'pemasukan') $grupPemasukan[] = $d;
+        elseif ($katL === 'hpp') $grupHpp[] = $d;
+        else $grupOps[] = $d;
+    }
 @endphp
 
 {{-- ── REPORT PAPER ── --}}
@@ -211,17 +270,26 @@
     <div class="report-kop">
         <h2>{{ $laporan->nama_umkm }}</h2>
         <div class="subtitle">Laporan Laba Rugi</div>
-        <div class="meta">Periode: {{ $periodLabel }} &nbsp;•&nbsp; Dicetak: {{ now()->translatedFormat('d F Y, H:i') }} WIB</div>
+        <div class="meta">Periode: {{ $periodLabel }}</div>
     </div>
 
     {{-- ═══ LAPORAN LABA RUGI (P&L Statement) ═══ --}}
     <table class="pl-statement">
         {{-- PENDAPATAN --}}
         <tr class="pl-section-head"><td colspan="2">Pendapatan</td></tr>
+        @foreach($grupPemasukan as $gp)
         <tr class="pl-item">
-            <td>Penjualan / Pemasukan</td>
-            <td class="text-end">Rp {{ number_format($laporan->total_pemasukan, 0, ',', '.') }}</td>
+            <td>{{ $gp['keterangan'] ?? 'Penjualan' }}
+                @if(isset($gp['tanggal']))
+                    <span style="color:#9ca3af; font-size:0.75rem; margin-left:0.3rem;">({{ \Carbon\Carbon::parse($gp['tanggal'])->format('d/m') }})</span>
+                @endif
+            </td>
+            <td class="text-end">Rp {{ number_format($gp['nominal'] ?? 0, 0, ',', '.') }}</td>
         </tr>
+        @endforeach
+        @if(empty($grupPemasukan))
+        <tr class="pl-item"><td>—</td><td class="text-end">Rp 0</td></tr>
+        @endif
         <tr class="pl-subtotal">
             <td>Total Pendapatan</td>
             <td class="text-end text-positif">Rp {{ number_format($laporan->total_pemasukan, 0, ',', '.') }}</td>
@@ -229,10 +297,19 @@
 
         {{-- HPP --}}
         <tr class="pl-section-head"><td colspan="2">Harga Pokok Penjualan</td></tr>
+        @foreach($grupHpp as $gh)
         <tr class="pl-item">
-            <td>Biaya Bahan Baku / Restock</td>
-            <td class="text-end">(Rp {{ number_format($laporan->total_hpp, 0, ',', '.') }})</td>
+            <td>{{ $gh['keterangan'] ?? 'Biaya HPP' }}
+                @if(isset($gh['tanggal']))
+                    <span style="color:#9ca3af; font-size:0.75rem; margin-left:0.3rem;">({{ \Carbon\Carbon::parse($gh['tanggal'])->format('d/m') }})</span>
+                @endif
+            </td>
+            <td class="text-end">(Rp {{ number_format($gh['nominal'] ?? 0, 0, ',', '.') }})</td>
         </tr>
+        @endforeach
+        @if(empty($grupHpp))
+        <tr class="pl-item"><td>—</td><td class="text-end">Rp 0</td></tr>
+        @endif
         <tr class="pl-subtotal">
             <td>Laba Kotor</td>
             <td class="text-end {{ $laporan->laba_kotor >= 0 ? 'text-positif' : 'text-negatif' }}">
@@ -242,10 +319,19 @@
 
         {{-- OPERASIONAL --}}
         <tr class="pl-section-head"><td colspan="2">Beban Operasional</td></tr>
+        @foreach($grupOps as $go)
         <tr class="pl-item">
-            <td>Biaya Operasional</td>
-            <td class="text-end">(Rp {{ number_format($laporan->total_operasional, 0, ',', '.') }})</td>
+            <td>{{ $go['keterangan'] ?? 'Biaya Operasional' }}
+                @if(isset($go['tanggal']))
+                    <span style="color:#9ca3af; font-size:0.75rem; margin-left:0.3rem;">({{ \Carbon\Carbon::parse($go['tanggal'])->format('d/m') }})</span>
+                @endif
+            </td>
+            <td class="text-end">(Rp {{ number_format($go['nominal'] ?? 0, 0, ',', '.') }})</td>
         </tr>
+        @endforeach
+        @if(empty($grupOps))
+        <tr class="pl-item"><td>—</td><td class="text-end">Rp 0</td></tr>
+        @endif
 
         {{-- LABA BERSIH --}}
         <tr class="pl-grandtotal">
@@ -274,20 +360,20 @@
 
     {{-- ═══ RINCIAN TRANSAKSI ═══ --}}
     @if(count($detail) > 0)
-    <div style="margin-top: 1.5rem;">
-        <h6 class="fw-bold mb-2" style="font-size:0.85rem; color:#406882; text-transform:uppercase; letter-spacing:0.5px;">
+    <div class="detail-section">
+        <div class="detail-section-title mb-2">
             <i class="bi bi-list-check me-1"></i>Rincian Transaksi
-        </h6>
-        <table class="table table-sm table-bordered detail-table mb-0">
+        </div>
+        <table class="detail-table">
             <thead>
                 <tr>
-                    <th style="width:32px">#</th>
-                    @if(isset($detail[0]['tanggal']))<th>Tanggal</th>@endif
+                    <th style="width:28px">#</th>
+                    <th>Tgl</th>
                     <th>Kategori</th>
                     <th>Keterangan</th>
                     @if(isset($detail[0]['kuantitas']))<th class="text-end">Qty</th>@endif
                     @if(isset($detail[0]['nilai_satuan']))<th class="text-end">Harga Satuan</th>@endif
-                    <th class="text-end">Total (Rp)</th>
+                    <th class="text-end">Total</th>
                 </tr>
             </thead>
             <tbody>
@@ -295,13 +381,15 @@
                 @php $kat = strtolower($row['kategori'] ?? ''); @endphp
                 <tr>
                     <td class="text-muted text-center">{{ $i + 1 }}</td>
-                    @if(isset($detail[0]['tanggal']))
-                        <td class="small">{{ isset($row['tanggal']) ? \Carbon\Carbon::parse($row['tanggal'])->format('d/m') : '-' }}</td>
-                    @endif
+                    <td class="small text-muted">{{ isset($row['tanggal']) ? \Carbon\Carbon::parse($row['tanggal'])->format('d/m') : '-' }}</td>
                     <td>
-                        <span class="badge {{ $kat == 'pemasukan' ? 'bg-success' : ($kat == 'hpp' ? 'bg-primary' : 'bg-warning text-dark') }}" style="font-size:0.7rem">
-                            {{ $row['kategori'] }}
-                        </span>
+                        @if($kat == 'pemasukan')
+                            <span style="color:#166534; font-weight:600; font-size:0.78rem;">Pemasukan</span>
+                        @elseif($kat == 'hpp')
+                            <span style="color:#1e40af; font-weight:600; font-size:0.78rem;">HPP</span>
+                        @else
+                            <span style="color:#92400e; font-weight:600; font-size:0.78rem;">Operasional</span>
+                        @endif
                     </td>
                     <td>{{ $row['keterangan'] ?? '-' }}</td>
                     @if(isset($detail[0]['kuantitas']))
@@ -314,14 +402,39 @@
                 </tr>
                 @endforeach
             </tbody>
+            <tfoot>
+                <tr>
+                    @php
+                        $footCols = 3; // #, tgl, kategori
+                        if(isset($detail[0]['kuantitas'])) $footCols++;
+                        if(isset($detail[0]['nilai_satuan'])) $footCols++;
+                    @endphp
+                    <td colspan="{{ $footCols }}" class="text-end">Total Transaksi:</td>
+                    <td class="text-end">
+                        <strong>{{ count($detail) }} item</strong>
+                    </td>
+                </tr>
+            </tfoot>
         </table>
     </div>
     @endif
 
-    {{-- Footer --}}
-    <div class="report-footer">
-        <p>Dokumen ini digenerate otomatis oleh <strong>SAP-UMKM</strong> — Sistem Analisis Profit UMKM</p>
+    {{-- ═══ TANDA TANGAN ═══ --}}
+    <div class="signature-area d-flex justify-content-between">
+        <div class="sig-block">
+            <div class="small text-muted">Mengetahui,</div>
+            <div class="sig-line"></div>
+            <div class="sig-name">{{ $laporan->nama_umkm }}</div>
+            <div class="sig-title">Pemilik Usaha</div>
+        </div>
+        <div class="sig-block" style="text-align:right;">
+            <div class="small text-muted">Cilacap, {{ now()->translatedFormat('d F Y') }}</div>
+            <div class="sig-line" style="margin-left:auto;"></div>
+            <div class="sig-name">Penyusun</div>
+            <div class="sig-title">SAP-UMKM</div>
+        </div>
     </div>
+
 </div>
 
 @endforeach
