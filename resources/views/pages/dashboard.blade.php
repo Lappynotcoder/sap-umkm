@@ -43,10 +43,10 @@
         <span class="text-muted small">
             <i class="bi bi-calendar3 me-1"></i>
             @php
-                try { $tglHeader = \Carbon\Carbon::parse($laporan->bulan)->translatedFormat('d F Y'); }
+                try { $tglHeader = \Carbon\Carbon::parse($laporan->bulan)->translatedFormat('F Y'); }
                 catch(\Exception $e) { $tglHeader = $laporan->bulan; }
             @endphp
-            {{ $tglHeader }}
+            Periode: {{ $tglHeader }}
         </span>
     </div>
     <div class="d-flex gap-2 flex-wrap">
@@ -212,10 +212,11 @@
 <div class="card card-metric p-3 mb-4">
     <h6 class="fw-bold mb-3"><i class="bi bi-table me-2" style="color:#1a6b3a"></i>Rincian Transaksi</h6>
     <div class="table-responsive">
-        <table class="table table-hover table-sm align-middle mb-0">
+        <table class="table table-hover table-sm align-middle mb-0 mobile-cards">
             <thead class="table-light">
                 <tr>
                     <th>#</th>
+                    @if(isset($detail[0]['tanggal']))<th>Tanggal</th>@endif
                     <th>Kategori</th>
                     @if(isset($detail[0]['keterangan']))<th>Keterangan</th>@endif
                     @if(isset($detail[0]['kuantitas']))<th class="text-end">Kuantitas</th>@endif
@@ -226,8 +227,13 @@
             <tbody>
                 @foreach($detail as $i => $baris)
                 <tr>
-                    <td class="text-muted small">{{ $i+1 }}</td>
-                    <td>
+                    <td data-label="#" class="text-muted small row-num-cell">{{ $i+1 }}</td>
+                    @if(isset($detail[0]['tanggal']))
+                        <td data-label="Tanggal" class="small">
+                            {{ isset($baris['tanggal']) ? \Carbon\Carbon::parse($baris['tanggal'])->format('d/m') : '-' }}
+                        </td>
+                    @endif
+                    <td data-label="Kategori">
                         @php $kat = strtolower($baris['kategori'] ?? '') @endphp
                         <span class="badge
                             {{ $kat == 'pemasukan' ? 'bg-success' : ($kat == 'hpp' ? 'bg-primary' : 'bg-warning text-dark') }}">
@@ -235,15 +241,15 @@
                         </span>
                     </td>
                     @if(isset($detail[0]['keterangan']))
-                        <td class="text-muted small">{{ $baris['keterangan'] ?? '-' }}</td>
+                        <td data-label="Keterangan" class="text-muted small">{{ $baris['keterangan'] ?? '-' }}</td>
                     @endif
                     @if(isset($detail[0]['kuantitas']))
-                        <td class="text-end">{{ number_format($baris['kuantitas'] ?? 0, 0, ',', '.') }}</td>
+                        <td data-label="Kuantitas" class="text-end">{{ number_format($baris['kuantitas'] ?? 0, 0, ',', '.') }}</td>
                     @endif
                     @if(isset($detail[0]['nilai_satuan']))
-                        <td class="text-end">Rp {{ number_format($baris['nilai_satuan'] ?? 0, 0, ',', '.') }}</td>
+                        <td data-label="Nilai Satuan" class="text-end">Rp {{ number_format($baris['nilai_satuan'] ?? 0, 0, ',', '.') }}</td>
                     @endif
-                    <td class="text-end fw-semibold">Rp {{ number_format($baris['nominal'] ?? 0, 0, ',', '.') }}</td>
+                    <td data-label="Total" class="text-end fw-semibold">Rp {{ number_format($baris['nominal'] ?? 0, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>

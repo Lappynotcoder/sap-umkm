@@ -25,5 +25,8 @@ class DatabaseSeeder extends Seeder
 
         // Seed data dummy laporan analisis
         $this->call(LaporanAnalisisSeeder::class);
+
+        // Seed data produk contoh
+        $this->call(ProductSeeder::class);
     }
 }

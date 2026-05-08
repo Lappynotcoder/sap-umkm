@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\LaporanAnalisis;
+use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 
 class AnalisisController extends Controller
@@ -30,9 +31,9 @@ class AnalisisController extends Controller
     }
 
     // ──────────────────────────────────────────────────────────────────────
-    // PROSES INPUT TRANSAKSI MANUAL
-    // Menerima array transaksi dari form tabel, menghitung agregasi
-    // dan profitabilitas langsung di PHP.
+    // PROSES INPUT TRANSAKSI MANUAL + INVENTORY INTEGRATION
+    // Menerima array transaksi dari form, menghitung agregasi,
+    // dan otomatis memperbarui stok produk jika terkait.
     // ──────────────────────────────────────────────────────────────────────
     public function prosesUpload(Request $request)
     {
@@ -62,18 +63,47 @@ class AnalisisController extends Controller
         $totalHpp         = 0;
         $totalOperasional = 0;
 
-        $kategoris    = $request->kategori;
-        $keterangans  = $request->keterangan;
-        $kuantitasList = $request->kuantitas;
-        $satuanList   = $request->nilai_satuan;
-        $nominalList  = $request->nominal;
+        $kategoris      = $request->kategori;
+        $keterangans    = $request->keterangan;
+        $kuantitasList  = $request->kuantitas;
+        $satuanList     = $request->nilai_satuan;
+        $nominalList    = $request->nominal;
+        $productIds     = $request->product_id ?? [];
+        $subKategoris   = $request->sub_kategori ?? [];
 
         for ($i = 0; $i < count($kategoris); $i++) {
-            $kat     = $kategoris[$i];
-            $ket     = $keterangans[$i] ?? '';
-            $qty     = floatval($kuantitasList[$i] ?? 0);
-            $satuan  = floatval($satuanList[$i] ?? 0);
-            $nominal = $qty * $satuan; // recalculate server-side for safety
+            $kat         = $kategoris[$i];
+            $ket         = $keterangans[$i] ?? '';
+            $qty         = floatval($kuantitasList[$i] ?? 0);
+            $satuan      = floatval($satuanList[$i] ?? 0);
+            $nominal     = $qty * $satuan; // recalculate server-side for safety
+            $productId   = $productIds[$i] ?? null;
+            $subKat      = $subKategoris[$i] ?? null;
+
+            // ── Inventory Integration ──
+            if ($productId && $productId != '') {
+                $product = Product::where('user_id', Auth::id())->find($productId);
+
+                if ($product) {
+                    $katLower = strtolower($kat);
+
+                    if ($katLower === 'pemasukan') {
+                        // Penjualan: kurangi stok, auto-fill keterangan & harga
+                        $product->decrement('stok_saat_ini', intval($qty));
+                        if (empty($ket)) {
+                            $ket = 'Penjualan ' . $product->nama_produk;
+                        }
+                        $satuan = $product->harga_jual;
+                        $nominal = $qty * $satuan;
+                    } elseif ($katLower === 'hpp' && $subKat === 'restock') {
+                        // Restock: tambah stok
+                        $product->increment('stok_saat_ini', intval($qty));
+                        if (empty($ket)) {
+                            $ket = 'Restock ' . $product->nama_produk;
+                        }
+                    }
+                }
+            }
 
             $detail[] = [
                 'kategori'     => $kat,
@@ -81,6 +111,8 @@ class AnalisisController extends Controller
                 'kuantitas'    => $qty,
                 'nilai_satuan' => $satuan,
                 'nominal'      => $nominal,
+                'product_id'   => $productId ?: null,
+                'tanggal'      => $request->bulan, // simpan tanggal asli per-item
             ];
 
             $katLower = strtolower($kat);
@@ -89,35 +121,88 @@ class AnalisisController extends Controller
             if ($katLower === 'operasional') $totalOperasional += $nominal;
         }
 
-        // Kalkulasi profitabilitas
-        $labaKotor   = $totalPemasukan - $totalHpp;
-        $labaBersih  = $labaKotor - $totalOperasional;
-        $marginKotor  = $totalPemasukan > 0 ? round(($labaKotor  / $totalPemasukan) * 100, 2) : 0;
-        $marginBersih = $totalPemasukan > 0 ? round(($labaBersih / $totalPemasukan) * 100, 2) : 0;
+        // ── Cari apakah sudah ada record untuk bulan yang sama ──
+        $tanggalInput = \Carbon\Carbon::parse($request->bulan);
+        $bulanNum     = $tanggalInput->month;
+        $tahunNum     = $tanggalInput->year;
 
-        // Break Even Point
-        $rasioHpp = $totalPemasukan > 0 ? ($totalHpp / $totalPemasukan) : 0;
-        $bep = (1 - $rasioHpp) > 0 ? ($totalOperasional / (1 - $rasioHpp)) : 0;
+        $existing = LaporanAnalisis::where('user_id', Auth::id())
+            ->whereMonth('bulan', $bulanNum)
+            ->whereYear('bulan', $tahunNum)
+            ->first();
 
-        // Simpan ke database
-        $laporan = LaporanAnalisis::create([
-            'user_id'          => Auth::id(),
-            'nama_umkm'        => Auth::user()->nama_umkm ?? 'UMKM ' . Auth::user()->name,
-            'bulan'            => $request->bulan,
-            'file_path'        => 'manual_input',
-            'total_pemasukan'  => $totalPemasukan,
-            'total_hpp'        => $totalHpp,
-            'total_operasional'=> $totalOperasional,
-            'laba_kotor'       => $labaKotor,
-            'laba_bersih'      => $labaBersih,
-            'margin_kotor'     => $marginKotor,
-            'margin_bersih'    => $marginBersih,
-            'break_even'       => $bep,
-            'detail_json'      => json_encode($detail),
-        ]);
+        if ($existing) {
+            // ── GABUNGKAN ke record yang sudah ada ──
+            $existingDetail = is_string($existing->detail_json)
+                ? json_decode($existing->detail_json, true) ?? []
+                : ($existing->detail_json ?? []);
+
+            // Append transaksi baru
+            $combinedDetail = array_merge($existingDetail, $detail);
+
+            // Hitung ulang semua agregasi dari seluruh data bulan ini
+            $totalPemasukan = 0;
+            $totalHpp = 0;
+            $totalOperasional = 0;
+            foreach ($combinedDetail as $row) {
+                $katL = strtolower($row['kategori'] ?? '');
+                $nom  = floatval($row['nominal'] ?? 0);
+                if ($katL === 'pemasukan')   $totalPemasukan   += $nom;
+                if ($katL === 'hpp')         $totalHpp         += $nom;
+                if ($katL === 'operasional') $totalOperasional += $nom;
+            }
+
+            $labaKotor    = $totalPemasukan - $totalHpp;
+            $labaBersih   = $labaKotor - $totalOperasional;
+            $marginKotor  = $totalPemasukan > 0 ? round(($labaKotor  / $totalPemasukan) * 100, 2) : 0;
+            $marginBersih = $totalPemasukan > 0 ? round(($labaBersih / $totalPemasukan) * 100, 2) : 0;
+
+            $rasioHpp = $totalPemasukan > 0 ? ($totalHpp / $totalPemasukan) : 0;
+            $bep = (1 - $rasioHpp) > 0 ? ($totalOperasional / (1 - $rasioHpp)) : 0;
+
+            $existing->update([
+                'total_pemasukan'  => $totalPemasukan,
+                'total_hpp'        => $totalHpp,
+                'total_operasional'=> $totalOperasional,
+                'laba_kotor'       => $labaKotor,
+                'laba_bersih'      => $labaBersih,
+                'margin_kotor'     => $marginKotor,
+                'margin_bersih'    => $marginBersih,
+                'break_even'       => $bep,
+                'detail_json'      => json_encode($combinedDetail),
+            ]);
+
+            $laporan = $existing;
+        } else {
+            // ── Buat record baru (belum ada data bulan ini) ──
+            $labaKotor   = $totalPemasukan - $totalHpp;
+            $labaBersih  = $labaKotor - $totalOperasional;
+            $marginKotor  = $totalPemasukan > 0 ? round(($labaKotor  / $totalPemasukan) * 100, 2) : 0;
+            $marginBersih = $totalPemasukan > 0 ? round(($labaBersih / $totalPemasukan) * 100, 2) : 0;
+
+            $rasioHpp = $totalPemasukan > 0 ? ($totalHpp / $totalPemasukan) : 0;
+            $bep = (1 - $rasioHpp) > 0 ? ($totalOperasional / (1 - $rasioHpp)) : 0;
+
+            // Gunakan tanggal 1 bulan ini sebagai representasi periode
+            $laporan = LaporanAnalisis::create([
+                'user_id'          => Auth::id(),
+                'nama_umkm'        => Auth::user()->nama_umkm ?? 'UMKM ' . Auth::user()->name,
+                'bulan'            => $tanggalInput->startOfMonth()->format('Y-m-d'),
+                'file_path'        => 'manual_input',
+                'total_pemasukan'  => $totalPemasukan,
+                'total_hpp'        => $totalHpp,
+                'total_operasional'=> $totalOperasional,
+                'laba_kotor'       => $labaKotor,
+                'laba_bersih'      => $labaBersih,
+                'margin_kotor'     => $marginKotor,
+                'margin_bersih'    => $marginBersih,
+                'break_even'       => $bep,
+                'detail_json'      => json_encode($detail),
+            ]);
+        }
 
         return redirect()->route('dashboard.show', $laporan->id)
-            ->with('success', 'Analisis berhasil! Data keuangan UMKM "' . $laporan->nama_umkm . '" sudah diproses.');
+            ->with('success', 'Transaksi berhasil ditambahkan ke laporan ' . $tanggalInput->translatedFormat('F Y') . '!');
     }
 
     // ──────────────────────────────────────────────────────────────────────
@@ -192,7 +277,51 @@ class AnalisisController extends Controller
             ];
         }
 
-        return view('pages.riwayat', compact('riwayat', 'summary', 'chartBulanan', 'tahun', 'availableYears'));
+        // ── Inventory Widgets ──
+        $lowStockProducts = Product::where('user_id', $userId)
+            ->active()
+            ->lowStock()
+            ->orderBy('stok_saat_ini')
+            ->take(5)
+            ->get();
+
+        // Top selling products (aggregate from detail_json)
+        $topProducts = collect();
+        $allLaporan = LaporanAnalisis::where('user_id', $userId)->get();
+        $productSales = [];
+        foreach ($allLaporan as $lap) {
+            $details = is_string($lap->detail_json) ? json_decode($lap->detail_json, true) : ($lap->detail_json ?? []);
+            foreach ($details as $d) {
+                if (isset($d['product_id']) && $d['product_id'] && strtolower($d['kategori'] ?? '') === 'pemasukan') {
+                    $pid = $d['product_id'];
+                    if (!isset($productSales[$pid])) {
+                        $productSales[$pid] = ['qty' => 0, 'revenue' => 0];
+                    }
+                    $productSales[$pid]['qty'] += ($d['kuantitas'] ?? 0);
+                    $productSales[$pid]['revenue'] += ($d['nominal'] ?? 0);
+                }
+            }
+        }
+        // Resolve product names and sort
+        if (!empty($productSales)) {
+            arsort($productSales);
+            $topIds = array_slice(array_keys($productSales), 0, 5);
+            $productNames = Product::whereIn('id', $topIds)->pluck('nama_produk', 'id');
+            foreach ($topIds as $pid) {
+                if ($productNames->has($pid)) {
+                    $topProducts->push((object)[
+                        'nama'    => $productNames[$pid],
+                        'qty'     => $productSales[$pid]['qty'],
+                        'revenue' => $productSales[$pid]['revenue'],
+                    ]);
+                }
+            }
+        }
+
+        return view('pages.riwayat', compact(
+            'riwayat', 'summary', 'chartBulanan', 'tahun', 'availableYears',
+            'lowStockProducts', 'topProducts'
+        ));
     }
 
     // ──────────────────────────────────────────────────────────────────────

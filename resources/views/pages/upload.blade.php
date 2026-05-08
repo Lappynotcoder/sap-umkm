@@ -75,6 +75,19 @@
     }
 
     .date-label { color: #6c757d; font-size: 0.85rem; }
+
+    /* ── Stock info ── */
+    .stock-info {
+        font-size: 0.72rem; margin-top: 0.2rem;
+        padding: 0.15rem 0.5rem; border-radius: 4px;
+        display: inline-block;
+    }
+    .stock-info.ok   { background: #dcfce7; color: #166534; }
+    .stock-info.low  { background: #fef9c3; color: #854d0e; }
+    .stock-info.out  { background: #fee2e2; color: #991b1b; }
+
+    .sub-kategori-wrap { margin-top: 0.35rem; }
+    .sub-kategori-wrap .form-select { font-size: 0.82rem; padding: 0.35rem 0.6rem; }
 </style>
 @endpush
 
@@ -109,14 +122,14 @@
             {{-- Tabel Input Transaksi --}}
             <div class="card card-metric p-0 mb-4">
                 <div class="table-responsive">
-                    <table class="input-table" id="tabelTransaksi">
+                    <table class="input-table mobile-cards" id="tabelTransaksi">
                         <thead>
                             <tr>
                                 <th style="width:44px"></th>
                                 <th style="width:170px">Kategori</th>
-                                <th>Keterangan</th>
-                                <th style="width:110px">Kuantitas</th>
-                                <th style="width:155px">Nilai Satuan (Rp)</th>
+                                <th>Produk / Keterangan</th>
+                                <th style="width:110px">Jumlah</th>
+                                <th style="width:155px">Harga Satuan (Rp)</th>
                                 <th style="width:150px">Total (Rp)</th>
                                 <th style="width:38px"></th>
                             </tr>
@@ -124,22 +137,34 @@
                         <tbody id="tbodyTransaksi">
                             <tr class="baris-transaksi">
                                 <td class="row-num">1</td>
-                                <td>
-                                    <select name="kategori[]" class="form-select" required>
+                                <td data-label="Kategori">
+                                    <select name="kategori[]" class="form-select sel-kategori" required onchange="onKategoriChange(this)">
                                         <option value="">Pilih</option>
-                                        <option value="Pemasukan">Pemasukan</option>
-                                        <option value="HPP">HPP</option>
-                                        <option value="Operasional">Operasional</option>
+                                        <option value="Pemasukan">Pemasukan (Penjualan)</option>
+                                        <option value="HPP">HPP (Restock/Bahan)</option>
+                                        <option value="Operasional">Operasional (Biaya)</option>
                                     </select>
+                                    <div class="sub-kategori-wrap d-none">
+                                        <select name="sub_kategori[]" class="form-select sel-sub-kategori" onchange="onSubKategoriChange(this)">
+                                            <option value="restock">Restock Produk</option>
+                                            <option value="bahan">Bahan Baku / Lainnya</option>
+                                        </select>
+                                    </div>
                                 </td>
-                                <td><input type="text" name="keterangan[]" class="form-control" placeholder="Keterangan..."></td>
-                                <td><input type="number" name="kuantitas[]" class="form-control input-qty" min="0" value="0" required></td>
-                                <td><input type="number" name="nilai_satuan[]" class="form-control input-unit" min="0" value="0" required></td>
-                                <td class="total-cell">
+                                <td data-label="Produk / Keterangan" class="td-produk">
+                                    <select name="product_id[]" class="form-select sel-produk d-none" onchange="onProdukChange(this)">
+                                        <option value="">— Pilih Produk —</option>
+                                    </select>
+                                    <div class="stock-info-wrap"></div>
+                                    <input type="text" name="keterangan[]" class="form-control input-ket" placeholder="Keterangan...">
+                                </td>
+                                <td data-label="Jumlah"><input type="number" name="kuantitas[]" class="form-control input-qty" min="0" value="0" required></td>
+                                <td data-label="Harga Satuan (Rp)"><input type="number" name="nilai_satuan[]" class="form-control input-unit" min="0" value="0" required></td>
+                                <td data-label="Total (Rp)" class="total-cell">
                                     <span class="display-total">0</span>
                                     <input type="hidden" name="nominal[]" class="input-nominal" value="0">
                                 </td>
-                                <td>
+                                <td data-label="">
                                     <button type="button" class="btn-hapus-row" onclick="hapusBaris(this)" title="Hapus">
                                         <i class="bi bi-x-circle"></i>
                                     </button>
@@ -167,25 +192,131 @@
 @push('scripts')
 <script>
 let rowCount = 1;
+let productsData = [];
 
-const ROW_HTML = `
+// Fetch products on page load
+fetch("{{ route('api.produk') }}")
+    .then(r => r.json())
+    .then(data => { productsData = data; })
+    .catch(() => { productsData = []; });
+
+function buildProdukOptions() {
+    let html = '<option value="">— Pilih Produk —</option>';
+    productsData.forEach(p => {
+        html += `<option value="${p.id}" data-harga="${p.harga_jual}" data-modal="${p.harga_modal}" data-stok="${p.stok_saat_ini}" data-satuan="${p.satuan}">${p.nama_produk} (${p.stok_saat_ini} ${p.satuan})</option>`;
+    });
+    return html;
+}
+
+function onKategoriChange(sel) {
+    const tr = sel.closest('tr') || sel.closest('.baris-transaksi');
+    const kategori = sel.value;
+    const subWrap = tr.querySelector('.sub-kategori-wrap');
+    const selProduk = tr.querySelector('.sel-produk');
+    const inputKet = tr.querySelector('.input-ket');
+    const stockWrap = tr.querySelector('.stock-info-wrap');
+
+    // Reset
+    subWrap.classList.add('d-none');
+    selProduk.classList.add('d-none');
+    inputKet.classList.remove('d-none');
+    stockWrap.innerHTML = '';
+
+    if (kategori === 'Pemasukan') {
+        // Show product dropdown, hide manual input
+        selProduk.innerHTML = buildProdukOptions();
+        selProduk.classList.remove('d-none');
+        inputKet.classList.add('d-none');
+    } else if (kategori === 'HPP') {
+        // Show sub-kategori
+        subWrap.classList.remove('d-none');
+        const sub = tr.querySelector('.sel-sub-kategori');
+        sub.value = 'restock';
+        onSubKategoriChange(sub);
+    }
+    // Operasional: just manual input (default)
+}
+
+function onSubKategoriChange(sel) {
+    const tr = sel.closest('tr') || sel.closest('.baris-transaksi');
+    const selProduk = tr.querySelector('.sel-produk');
+    const inputKet = tr.querySelector('.input-ket');
+    const stockWrap = tr.querySelector('.stock-info-wrap');
+
+    if (sel.value === 'restock') {
+        selProduk.innerHTML = buildProdukOptions();
+        selProduk.classList.remove('d-none');
+        inputKet.classList.add('d-none');
+    } else {
+        selProduk.classList.add('d-none');
+        inputKet.classList.remove('d-none');
+        stockWrap.innerHTML = '';
+    }
+}
+
+function onProdukChange(sel) {
+    const tr = sel.closest('tr') || sel.closest('.baris-transaksi');
+    const opt = sel.options[sel.selectedIndex];
+    const inputUnit = tr.querySelector('.input-unit');
+    const stockWrap = tr.querySelector('.stock-info-wrap');
+    const kategori = tr.querySelector('.sel-kategori').value;
+
+    if (!opt || !opt.value) {
+        stockWrap.innerHTML = '';
+        return;
+    }
+
+    const stok = parseInt(opt.dataset.stok) || 0;
+    const satuan = opt.dataset.satuan || 'pcs';
+
+    // Auto-fill price
+    if (kategori === 'Pemasukan') {
+        inputUnit.value = opt.dataset.harga || 0;
+    } else {
+        inputUnit.value = opt.dataset.modal || 0;
+    }
+
+    // Show stock info
+    let cls = 'ok', icon = '✓';
+    if (stok <= 0) { cls = 'out'; icon = '✗'; }
+    else if (stok <= 10) { cls = 'low'; icon = '⚠'; }
+
+    stockWrap.innerHTML = `<div class="stock-info ${cls}">${icon} Stok: ${stok} ${satuan}</div>`;
+
+    // Recalculate total
+    calcRow(tr);
+}
+
+const ROW_TEMPLATE = `
     <td class="row-num">__NUM__</td>
-    <td>
-        <select name="kategori[]" class="form-select" required>
+    <td data-label="Kategori">
+        <select name="kategori[]" class="form-select sel-kategori" required onchange="onKategoriChange(this)">
             <option value="">Pilih</option>
-            <option value="Pemasukan">Pemasukan</option>
-            <option value="HPP">HPP</option>
-            <option value="Operasional">Operasional</option>
+            <option value="Pemasukan">Pemasukan (Penjualan)</option>
+            <option value="HPP">HPP (Restock/Bahan)</option>
+            <option value="Operasional">Operasional (Biaya)</option>
         </select>
+        <div class="sub-kategori-wrap d-none">
+            <select name="sub_kategori[]" class="form-select sel-sub-kategori" onchange="onSubKategoriChange(this)">
+                <option value="restock">Restock Produk</option>
+                <option value="bahan">Bahan Baku / Lainnya</option>
+            </select>
+        </div>
     </td>
-    <td><input type="text" name="keterangan[]" class="form-control" placeholder="Keterangan..."></td>
-    <td><input type="number" name="kuantitas[]" class="form-control input-qty" min="0" value="0" required></td>
-    <td><input type="number" name="nilai_satuan[]" class="form-control input-unit" min="0" value="0" required></td>
-    <td class="total-cell">
+    <td data-label="Produk / Keterangan" class="td-produk">
+        <select name="product_id[]" class="form-select sel-produk d-none" onchange="onProdukChange(this)">
+            <option value="">— Pilih Produk —</option>
+        </select>
+        <div class="stock-info-wrap"></div>
+        <input type="text" name="keterangan[]" class="form-control input-ket" placeholder="Keterangan...">
+    </td>
+    <td data-label="Jumlah"><input type="number" name="kuantitas[]" class="form-control input-qty" min="0" value="0" required></td>
+    <td data-label="Harga Satuan (Rp)"><input type="number" name="nilai_satuan[]" class="form-control input-unit" min="0" value="0" required></td>
+    <td data-label="Total (Rp)" class="total-cell">
         <span class="display-total">0</span>
         <input type="hidden" name="nominal[]" class="input-nominal" value="0">
     </td>
-    <td>
+    <td data-label="">
         <button type="button" class="btn-hapus-row" onclick="hapusBaris(this)" title="Hapus">
             <i class="bi bi-x-circle"></i>
         </button>
@@ -195,7 +326,7 @@ function tambahBaris() {
     rowCount++;
     const tr = document.createElement('tr');
     tr.className = 'baris-transaksi';
-    tr.innerHTML = ROW_HTML.replace('__NUM__', rowCount);
+    tr.innerHTML = ROW_TEMPLATE.replace('__NUM__', rowCount);
     document.getElementById('tbodyTransaksi').appendChild(tr);
     bindCalc(tr);
 }

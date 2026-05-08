@@ -100,9 +100,117 @@
             .sidebar.show { transform: translateX(0); }
             .main-wrapper { margin-left: 0; }
             .sidebar-toggler { display: inline-flex; }
+            .page-content { padding: 1rem 0.75rem; }
         }
         .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 999; }
         .sidebar-overlay.show { display: block; }
+
+        /* ── Mobile Card Layout ── */
+        @media (max-width: 768px) {
+            .mobile-cards thead { display: none; }
+            .mobile-cards tfoot { display: none; }
+
+            .mobile-cards tbody tr {
+                display: block;
+                background: #fff;
+                border: 1.5px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 0.85rem 1rem;
+                margin-bottom: 0.75rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                transition: box-shadow 0.2s;
+            }
+            .mobile-cards tbody tr:hover {
+                box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            }
+
+            .mobile-cards tbody td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0 !important;
+                border: none !important;
+                font-size: 0.88rem;
+                text-align: right !important;
+            }
+
+            .mobile-cards tbody td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #475569;
+                font-size: 0.8rem;
+                text-align: left;
+                flex-shrink: 0;
+                margin-right: 1rem;
+            }
+
+            .mobile-cards tbody td:first-child {
+                padding-top: 0.15rem !important;
+            }
+            .mobile-cards tbody td:last-child {
+                padding-bottom: 0.15rem !important;
+            }
+
+            /* Hide row number column on mobile */
+            .mobile-cards tbody td.row-num-cell {
+                display: none;
+            }
+
+            /* Input table card mode */
+            .mobile-cards.input-table {
+                border-spacing: 0;
+            }
+            .mobile-cards.input-table tbody tr {
+                border-left: 4px solid var(--accent, #F2AB39);
+            }
+            .mobile-cards.input-table tbody td {
+                display: block;
+                text-align: left !important;
+                padding: 0.3rem 0 !important;
+            }
+            .mobile-cards.input-table tbody td::before {
+                display: block;
+                margin-bottom: 0.25rem;
+                color: #64748b;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+            .mobile-cards.input-table tbody td .form-control,
+            .mobile-cards.input-table tbody td .form-select {
+                width: 100%;
+            }
+            .mobile-cards.input-table .row-num {
+                display: none;
+            }
+            .mobile-cards.input-table tbody td:last-child {
+                text-align: center !important;
+                padding-top: 0.5rem !important;
+                border-top: 1px dashed #e2e8f0;
+                margin-top: 0.25rem;
+            }
+
+            /* Summary table mobile */
+            .summary-table.mobile-cards tbody tr {
+                border-left: 4px solid #1a6b3a;
+            }
+            .summary-table.mobile-cards tbody td,
+            .summary-table.mobile-cards tbody th {
+                display: block;
+                width: 100% !important;
+                text-align: left !important;
+            }
+            .summary-table.mobile-cards tbody th {
+                font-size: 0.78rem;
+                color: #64748b;
+                padding-bottom: 0 !important;
+                background: transparent !important;
+            }
+            .summary-table.mobile-cards tbody td {
+                font-size: 0.95rem;
+                padding-top: 0 !important;
+            }
+        }
 
         @media print {
             .sidebar, .topbar, .d-print-none { display: none !important; }
@@ -125,6 +233,10 @@
         <a href="{{ route('upload.form') }}"
            class="sidebar-link {{ request()->routeIs('upload.*') ? 'active' : '' }}">
             <i class="bi bi-journal-text"></i> Keuangan
+        </a>
+        <a href="{{ route('produk.index') }}"
+           class="sidebar-link {{ request()->routeIs('produk.*') ? 'active' : '' }}">
+            <i class="bi bi-box-seam"></i> Produk & Stok
         </a>
         <a href="{{ route('laporan') }}"
            class="sidebar-link {{ request()->routeIs('laporan') ? 'active' : '' }}">

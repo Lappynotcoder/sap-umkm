@@ -111,6 +111,55 @@
 
 @endif
 
+{{-- ── INVENTORY WIDGETS ── --}}
+@if(($topProducts ?? collect())->count() > 0 || ($lowStockProducts ?? collect())->count() > 0)
+<div class="row g-3 mb-4">
+    {{-- Top Selling Products --}}
+    @if($topProducts->count() > 0)
+    <div class="col-md-6">
+        <div class="card card-metric p-3 h-100">
+            <div class="section-title mb-3"><i class="bi bi-trophy-fill me-2" style="color:#f4a100"></i>Produk Terlaris</div>
+            @foreach($topProducts as $i => $tp)
+            <div class="d-flex justify-content-between align-items-center {{ !$loop->last ? 'mb-2 pb-2 border-bottom' : '' }}">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold" style="color:#f4a100; width:20px">{{ $i + 1 }}.</span>
+                    <span class="fw-semibold small">{{ $tp->nama }}</span>
+                </div>
+                <div class="text-end">
+                    <span class="fw-bold small text-success">{{ number_format($tp->qty, 0, ',', '.') }} terjual</span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- Low Stock Alert --}}
+    @if($lowStockProducts->count() > 0)
+    <div class="col-md-6">
+        <div class="card card-metric p-3 h-100" style="border-left: 4px solid #ef4444;">
+            <div class="section-title mb-3"><i class="bi bi-exclamation-triangle-fill me-2" style="color:#ef4444"></i>Stok Rendah</div>
+            @foreach($lowStockProducts as $lp)
+            <div class="d-flex justify-content-between align-items-center {{ !$loop->last ? 'mb-2 pb-2 border-bottom' : '' }}">
+                <span class="fw-semibold small">{{ $lp->nama_produk }}</span>
+                <div class="d-flex align-items-center gap-2">
+                    @if($lp->stok_saat_ini <= 0)
+                        <span class="badge" style="background:#fee2e2; color:#991b1b; font-size:0.72rem">Habis</span>
+                    @else
+                        <span class="badge" style="background:#fef9c3; color:#854d0e; font-size:0.72rem">{{ $lp->stok_saat_ini }} {{ $lp->satuan }}</span>
+                    @endif
+                    <a href="{{ route('upload.form') }}" class="btn btn-sm btn-outline-danger" style="font-size:0.7rem; padding:0.15rem 0.5rem;" title="Restock">
+                        <i class="bi bi-plus-circle"></i>
+                    </a>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+</div>
+@endif
+
 {{-- ── TABEL RIWAYAT (RINGKAS) ── --}}
 <div class="d-flex justify-content-between align-items-center mb-2">
     <div class="section-title mb-0"><i class="bi bi-clock-history me-2"></i>Transaksi Terbaru</div>
@@ -119,10 +168,10 @@
 @if($riwayat->count() > 0)
 <div class="card card-metric p-3 mb-3">
     <div class="table-responsive">
-        <table class="table table-hover table-sm align-middle mb-0">
+        <table class="table table-hover table-sm align-middle mb-0 mobile-cards">
             <thead class="table-light">
                 <tr>
-                    <th>Tanggal</th>
+                    <th>Periode</th>
                     <th class="text-end">Laba Bersih</th>
                     <th>Margin</th>
                     <th></th>
@@ -131,22 +180,22 @@
             <tbody>
             @foreach($riwayat as $r)
             <tr>
-                <td class="small text-muted">
+                <td data-label="Periode" class="small text-muted">
                     @php
-                        try { $tgl = \Carbon\Carbon::parse($r->bulan)->translatedFormat('d M Y'); }
+                        try { $tgl = \Carbon\Carbon::parse($r->bulan)->translatedFormat('M Y'); }
                         catch(\Exception $e) { $tgl = $r->bulan; }
                     @endphp
                     {{ $tgl }}
                 </td>
-                <td class="text-end {{ $r->laba_bersih >= 0 ? 'text-success' : 'text-danger' }} fw-bold">
+                <td data-label="Laba Bersih" class="text-end {{ $r->laba_bersih >= 0 ? 'text-success' : 'text-danger' }} fw-bold">
                     Rp {{ number_format($r->laba_bersih,0,',','.') }}
                 </td>
-                <td>
+                <td data-label="Margin">
                     <span class="badge {{ $r->margin_bersih >= 0 ? 'badge-profit-pos' : 'badge-profit-neg' }}">
                         {{ $r->margin_bersih }}%
                     </span>
                 </td>
-                <td>
+                <td data-label="">
                     <a href="{{ route('dashboard.show', $r->id) }}" class="btn btn-sm btn-outline-success" title="Detail">
                         <i class="bi bi-eye"></i>
                     </a>

@@ -9,29 +9,110 @@
         padding: 1rem 1.25rem;
     }
 
-    .report-header {
-        text-align: center; padding: 1.5rem 0 1rem;
-        border-bottom: 3px double #1a6b3a;
-        margin-bottom: 1.5rem;
+    /* ── Report Paper ── */
+    .report-paper {
+        background: #fff; border-radius: 4px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        padding: 2.5rem 3rem;
+        max-width: 820px;
+        margin: 0 auto;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
     }
-    .report-header h3 { font-weight: 700; color: #111827; margin-bottom: 0.25rem; }
-    .report-header .sub { color: #6c757d; font-size: 0.9rem; }
 
-    .summary-table th { background: #f8f9fa; width: 40%; }
-    .summary-table td.val-positif { color: #1a6b3a; font-weight: 700; }
-    .summary-table td.val-negatif { color: #dc3545; font-weight: 700; }
+    .report-kop {
+        text-align: center;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px double #1a6b3a;
+    }
+    .report-kop h2 {
+        font-weight: 800; font-size: 1.3rem; color: #111827;
+        letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.15rem;
+    }
+    .report-kop .subtitle {
+        font-size: 1rem; font-weight: 700; color: #1a6b3a;
+        margin-bottom: 0.4rem;
+    }
+    .report-kop .meta {
+        font-size: 0.8rem; color: #6c757d;
+    }
 
+    /* ── Laporan Laba Rugi ── */
+    .pl-statement { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+
+    .pl-statement td, .pl-statement th {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.9rem;
+        vertical-align: top;
+    }
+
+    .pl-statement .pl-section-head td {
+        font-weight: 700; font-size: 0.82rem;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        color: #406882;
+        padding-top: 1.2rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 1.5px solid #e2e8f0;
+    }
+
+    .pl-statement .pl-item td {
+        border-bottom: 1px dotted #e5e7eb;
+    }
+    .pl-statement .pl-item td:first-child {
+        padding-left: 1.2rem; color: #374151;
+    }
+
+    .pl-statement .pl-subtotal td {
+        font-weight: 700;
+        border-top: 1.5px solid #334155;
+        border-bottom: 1.5px solid #334155;
+        padding-top: 0.6rem; padding-bottom: 0.6rem;
+    }
+    .pl-statement .pl-subtotal td:first-child {
+        padding-left: 0.5rem;
+    }
+
+    .pl-statement .pl-grandtotal td {
+        font-weight: 800; font-size: 1.05rem;
+        border-top: 3px double #1a6b3a;
+        border-bottom: 3px double #1a6b3a;
+        padding: 0.7rem 0.25rem;
+        background: #f0fdf4;
+    }
+
+    .text-positif { color: #166534; }
+    .text-negatif { color: #dc3545; }
+
+    /* ── Rasio Box ── */
+    .rasio-row {
+        display: flex; gap: 1rem; flex-wrap: wrap;
+        margin: 1.5rem 0;
+    }
+    .rasio-box {
+        flex: 1; min-width: 140px;
+        text-align: center; padding: 1rem;
+        border: 1.5px solid #e2e8f0; border-radius: 8px;
+    }
+    .rasio-label { font-size: 0.72rem; color: #6c757d; font-weight: 600; text-transform: uppercase; }
+    .rasio-value { font-size: 1.2rem; font-weight: 800; margin-top: 0.2rem; }
+
+    /* ── Detail Table ── */
     .detail-table thead th {
         background: #406882; color: #fff;
-        font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px;
+        font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;
+        padding: 0.6rem 0.5rem;
+    }
+    .detail-table tbody td {
+        font-size: 0.85rem; padding: 0.45rem 0.5rem;
+        border-bottom: 1px solid #f0f0f0;
     }
 
     .report-footer {
         margin-top: 2rem; padding-top: 1rem;
         border-top: 1px solid #dee2e6;
-        font-size: 0.8rem; color: #adb5bd;
         text-align: center;
     }
+    .report-footer p { font-size: 0.78rem; color: #adb5bd; margin: 0; }
 
     .btn-cetak {
         background: #F2AB39;
@@ -48,9 +129,21 @@
     /* ── Print Styles ── */
     @media print {
         .filter-bar, .d-print-none { display: none !important; }
-        .card-metric { box-shadow: none !important; border: 1px solid #dee2e6 !important; }
-        .report-header { border-bottom-color: #000; }
-        body { font-size: 11pt; }
+        .report-paper { box-shadow: none !important; padding: 0; max-width: 100%; }
+        .main-wrapper { margin-left: 0; }
+        body { font-size: 10pt; }
+        .pl-statement .pl-grandtotal td { background: #f0fdf4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .detail-table thead th { background: #406882 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+        .report-paper { padding: 1.5rem 1rem; }
+        .report-kop h2 { font-size: 1rem; }
+        .rasio-row { gap: 0.5rem; }
+        .rasio-box { min-width: 100px; padding: 0.7rem 0.5rem; }
+        .rasio-value { font-size: 1rem; }
+        .pl-statement td, .pl-statement th { font-size: 0.82rem; }
     }
 </style>
 @endpush
@@ -104,97 +197,109 @@
 
 @if($laporanBulan->count() > 0)
 
-{{-- ── LAPORAN PRINTABLE ── --}}
-<div class="card card-metric p-4">
+@foreach($laporanBulan as $laporan)
+@php
+    $detail = is_string($laporan->detail_json) ? json_decode($laporan->detail_json, true) : ($laporan->detail_json ?? []);
+    // Format sebagai bulan & tahun (laporan bulanan)
+    $periodLabel = \Carbon\Carbon::parse($laporan->bulan)->translatedFormat('F Y');
+@endphp
 
-    {{-- Kop Laporan --}}
-    <div class="report-header">
-        <h3><i class="bi bi-bar-chart-line-fill me-2" style="color:#1a6b3a"></i>LAPORAN KEUANGAN BULANAN</h3>
-        <div class="sub">
-            Periode: <strong>{{ DateTime::createFromFormat('!m', $bulanFilter)->format('F') }} {{ $tahunFilter }}</strong>
-        </div>
-        <div class="sub">Dicetak: {{ now()->translatedFormat('d F Y, H:i') }} WIB</div>
+{{-- ── REPORT PAPER ── --}}
+<div class="report-paper mb-4">
+
+    {{-- Kop Surat --}}
+    <div class="report-kop">
+        <h2>{{ $laporan->nama_umkm }}</h2>
+        <div class="subtitle">Laporan Laba Rugi</div>
+        <div class="meta">Periode: {{ $periodLabel }} &nbsp;•&nbsp; Dicetak: {{ now()->translatedFormat('d F Y, H:i') }} WIB</div>
     </div>
 
-    @foreach($laporanBulan as $laporan)
-    <div class="mb-4 {{ !$loop->last ? 'pb-4 border-bottom' : '' }}">
-        <h5 class="fw-bold mb-3">
-            <i class="bi bi-shop me-2" style="color:#1a6b3a"></i>{{ $laporan->nama_umkm }}
-            <span class="text-muted fw-normal small">—
-                @php
-                    try { $tgl = \Carbon\Carbon::parse($laporan->bulan)->translatedFormat('d F Y'); }
-                    catch(\Exception $e) { $tgl = $laporan->bulan; }
-                @endphp
-                {{ $tgl }}
-            </span>
-        </h5>
+    {{-- ═══ LAPORAN LABA RUGI (P&L Statement) ═══ --}}
+    <table class="pl-statement">
+        {{-- PENDAPATAN --}}
+        <tr class="pl-section-head"><td colspan="2">Pendapatan</td></tr>
+        <tr class="pl-item">
+            <td>Penjualan / Pemasukan</td>
+            <td class="text-end">Rp {{ number_format($laporan->total_pemasukan, 0, ',', '.') }}</td>
+        </tr>
+        <tr class="pl-subtotal">
+            <td>Total Pendapatan</td>
+            <td class="text-end text-positif">Rp {{ number_format($laporan->total_pemasukan, 0, ',', '.') }}</td>
+        </tr>
 
-        {{-- Tabel Ringkasan --}}
-        <table class="table table-bordered summary-table mb-3">
-            <tbody>
-                <tr>
-                    <th>Total Pemasukan</th>
-                    <td class="val-positif">Rp {{ number_format($laporan->total_pemasukan, 0, ',', '.') }}</td>
-                </tr>
-                <tr>
-                    <th>Harga Pokok Penjualan (HPP)</th>
-                    <td>Rp {{ number_format($laporan->total_hpp, 0, ',', '.') }}</td>
-                </tr>
-                <tr>
-                    <th>Laba Kotor</th>
-                    <td class="{{ $laporan->laba_kotor >= 0 ? 'val-positif' : 'val-negatif' }}">
-                        Rp {{ number_format($laporan->laba_kotor, 0, ',', '.') }}
-                    </td>
-                </tr>
-                <tr>
-                    <th>Biaya Operasional</th>
-                    <td>Rp {{ number_format($laporan->total_operasional, 0, ',', '.') }}</td>
-                </tr>
-                <tr style="background:#f0fdf4">
-                    <th>Laba Bersih</th>
-                    <td class="{{ $laporan->laba_bersih >= 0 ? 'val-positif' : 'val-negatif' }}" style="font-size:1.1rem">
-                        Rp {{ number_format($laporan->laba_bersih, 0, ',', '.') }}
-                    </td>
-                </tr>
-                <tr>
-                    <th>Margin Laba Kotor</th>
-                    <td>{{ $laporan->margin_kotor }}%</td>
-                </tr>
-                <tr>
-                    <th>Margin Laba Bersih</th>
-                    <td class="{{ $laporan->margin_bersih >= 0 ? 'val-positif' : 'val-negatif' }}">
-                        {{ $laporan->margin_bersih }}%
-                    </td>
-                </tr>
-                <tr>
-                    <th>Target Balik Modal</th>
-                    <td>Rp {{ number_format($laporan->break_even, 0, ',', '.') }}</td>
-                </tr>
-            </tbody>
-        </table>
+        {{-- HPP --}}
+        <tr class="pl-section-head"><td colspan="2">Harga Pokok Penjualan</td></tr>
+        <tr class="pl-item">
+            <td>Biaya Bahan Baku / Restock</td>
+            <td class="text-end">(Rp {{ number_format($laporan->total_hpp, 0, ',', '.') }})</td>
+        </tr>
+        <tr class="pl-subtotal">
+            <td>Laba Kotor</td>
+            <td class="text-end {{ $laporan->laba_kotor >= 0 ? 'text-positif' : 'text-negatif' }}">
+                Rp {{ number_format($laporan->laba_kotor, 0, ',', '.') }}
+            </td>
+        </tr>
 
-        {{-- Tabel Rincian Transaksi --}}
-        @php $detail = is_string($laporan->detail_json) ? json_decode($laporan->detail_json, true) : ($laporan->detail_json ?? []); @endphp
-        @if(count($detail) > 0)
-        <h6 class="fw-bold mb-2"><i class="bi bi-list-check me-1"></i>Rincian Transaksi</h6>
+        {{-- OPERASIONAL --}}
+        <tr class="pl-section-head"><td colspan="2">Beban Operasional</td></tr>
+        <tr class="pl-item">
+            <td>Biaya Operasional</td>
+            <td class="text-end">(Rp {{ number_format($laporan->total_operasional, 0, ',', '.') }})</td>
+        </tr>
+
+        {{-- LABA BERSIH --}}
+        <tr class="pl-grandtotal">
+            <td>LABA BERSIH</td>
+            <td class="text-end {{ $laporan->laba_bersih >= 0 ? 'text-positif' : 'text-negatif' }}">
+                Rp {{ number_format($laporan->laba_bersih, 0, ',', '.') }}
+            </td>
+        </tr>
+    </table>
+
+    {{-- ═══ RASIO KEUANGAN ═══ --}}
+    <div class="rasio-row">
+        <div class="rasio-box">
+            <div class="rasio-label">Margin Kotor</div>
+            <div class="rasio-value {{ $laporan->margin_kotor >= 0 ? 'text-positif' : 'text-negatif' }}">{{ $laporan->margin_kotor }}%</div>
+        </div>
+        <div class="rasio-box">
+            <div class="rasio-label">Margin Bersih</div>
+            <div class="rasio-value {{ $laporan->margin_bersih >= 0 ? 'text-positif' : 'text-negatif' }}">{{ $laporan->margin_bersih }}%</div>
+        </div>
+        <div class="rasio-box">
+            <div class="rasio-label">Break Even Point</div>
+            <div class="rasio-value" style="font-size:0.95rem; color:#334155;">Rp {{ number_format($laporan->break_even, 0, ',', '.') }}</div>
+        </div>
+    </div>
+
+    {{-- ═══ RINCIAN TRANSAKSI ═══ --}}
+    @if(count($detail) > 0)
+    <div style="margin-top: 1.5rem;">
+        <h6 class="fw-bold mb-2" style="font-size:0.85rem; color:#406882; text-transform:uppercase; letter-spacing:0.5px;">
+            <i class="bi bi-list-check me-1"></i>Rincian Transaksi
+        </h6>
         <table class="table table-sm table-bordered detail-table mb-0">
             <thead>
                 <tr>
-                    <th style="width:36px">#</th>
+                    <th style="width:32px">#</th>
+                    @if(isset($detail[0]['tanggal']))<th>Tanggal</th>@endif
                     <th>Kategori</th>
                     <th>Keterangan</th>
                     @if(isset($detail[0]['kuantitas']))<th class="text-end">Qty</th>@endif
-                    @if(isset($detail[0]['nilai_satuan']))<th class="text-end">Satuan (Rp)</th>@endif
+                    @if(isset($detail[0]['nilai_satuan']))<th class="text-end">Harga Satuan</th>@endif
                     <th class="text-end">Total (Rp)</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($detail as $i => $row)
+                @php $kat = strtolower($row['kategori'] ?? ''); @endphp
                 <tr>
-                    <td class="text-muted small text-center">{{ $i + 1 }}</td>
+                    <td class="text-muted text-center">{{ $i + 1 }}</td>
+                    @if(isset($detail[0]['tanggal']))
+                        <td class="small">{{ isset($row['tanggal']) ? \Carbon\Carbon::parse($row['tanggal'])->format('d/m') : '-' }}</td>
+                    @endif
                     <td>
-                        @php $kat = strtolower($row['kategori'] ?? ''); @endphp
-                        <span class="badge {{ $kat == 'pemasukan' ? 'bg-success' : ($kat == 'hpp' ? 'bg-primary' : 'bg-warning text-dark') }}">
+                        <span class="badge {{ $kat == 'pemasukan' ? 'bg-success' : ($kat == 'hpp' ? 'bg-primary' : 'bg-warning text-dark') }}" style="font-size:0.7rem">
                             {{ $row['kategori'] }}
                         </span>
                     </td>
@@ -210,15 +315,16 @@
                 @endforeach
             </tbody>
         </table>
-        @endif
     </div>
-    @endforeach
+    @endif
 
     {{-- Footer --}}
     <div class="report-footer">
-        <p>Laporan ini digenerate otomatis oleh <strong>SAP-UMKM</strong> — Sistem Analisis Profit UMKM</p>
+        <p>Dokumen ini digenerate otomatis oleh <strong>SAP-UMKM</strong> — Sistem Analisis Profit UMKM</p>
     </div>
 </div>
+
+@endforeach
 
 @else
 
