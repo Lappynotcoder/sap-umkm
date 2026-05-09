@@ -519,11 +519,4 @@ class AnalisisController extends Controller
             ->with('success', 'Laporan analisis "' . $namaUmkm . '" berhasil dihapus.');
     }
 
-    // ──────────────────────────────────────────────────────────────────────
-    // HALAMAN TENTANG / INFO SDGs
-    // ──────────────────────────────────────────────────────────────────────
-    public function tentang()
-    {
-        return view('pages.tentang');
-    }
 }

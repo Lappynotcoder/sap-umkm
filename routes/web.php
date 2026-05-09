@@ -6,7 +6,7 @@ use App\Http\Controllers\AnalisisController;
 use App\Http\Controllers\ProductController;
 
 Route::get('/', [AnalisisController::class, 'index'])->name('home');
-Route::get('/tentang', [AnalisisController::class, 'tentang'])->name('tentang');
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
