@@ -21,10 +21,10 @@
 @if($riwayat->count() > 0)
 <div class="card card-metric p-3 mb-4">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 mobile-cards">
             <thead class="table-light">
                 <tr>
-                    <th>Tanggal Input</th>
+                    <th>Periode</th>
                     <th class="text-end">Total Pemasukan</th>
                     <th class="text-end">Total Pengeluaran</th>
                     <th class="text-end">Laba Bersih</th>
@@ -38,28 +38,28 @@
                     $pengeluaran = $r->total_hpp + $r->total_operasional;
                 @endphp
             <tr>
-                <td class="text-muted fw-medium">
+                <td data-label="Periode" class="text-muted fw-medium">
                     @php
-                        try { $tgl = \Carbon\Carbon::parse($r->bulan)->translatedFormat('d M Y'); }
+                        try { $tgl = \Carbon\Carbon::parse($r->bulan)->translatedFormat('M Y'); }
                         catch(\Exception $e) { $tgl = $r->bulan; }
                     @endphp
                     {{ $tgl }}
                 </td>
-                <td class="text-end text-success">
+                <td data-label="Pemasukan" class="text-end text-success">
                     Rp {{ number_format($r->total_pemasukan,0,',','.') }}
                 </td>
-                <td class="text-end text-danger">
+                <td data-label="Pengeluaran" class="text-end text-danger">
                     Rp {{ number_format($pengeluaran,0,',','.') }}
                 </td>
-                <td class="text-end {{ $r->laba_bersih >= 0 ? 'text-success' : 'text-danger' }} fw-bold">
+                <td data-label="Laba Bersih" class="text-end {{ $r->laba_bersih >= 0 ? 'text-success' : 'text-danger' }} fw-bold">
                     Rp {{ number_format($r->laba_bersih,0,',','.') }}
                 </td>
-                <td>
+                <td data-label="Margin">
                     <span class="badge {{ $r->margin_bersih >= 0 ? 'badge-profit-pos' : 'badge-profit-neg' }}">
                         {{ $r->margin_bersih }}%
                     </span>
                 </td>
-                <td class="text-center">
+                <td data-label="" class="text-center">
                     <a href="{{ route('dashboard.show', $r->id) }}" class="btn btn-sm btn-outline-success btn-pill" title="Lihat Detail" style="color: #34A853; border-color: #34A853;">
                         <i class="bi bi-eye"></i> Detail
                     </a>

@@ -13,10 +13,13 @@
         </div>
 
         <!-- Password -->
-        <div>
-            <input id="password" class="form-control-custom" type="password" name="password" required autocomplete="current-password" placeholder="password">
+        <div class="pass-wrapper mb-3">
+            <input id="password" class="form-control-custom m-0" type="password" name="password" required autocomplete="current-password" placeholder="password">
+            <button type="button" class="btn-show-pass" onclick="togglePassword('password', this)">
+                <i class="bi bi-eye"></i>
+            </button>
             @error('password')
-                <span class="text-danger-small">{{ $message }}</span>
+                <span class="text-danger-small mt-2">{{ $message }}</span>
             @enderror
         </div>
 

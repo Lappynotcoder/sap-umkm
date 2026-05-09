@@ -3,9 +3,10 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AnalisisController;
+use App\Http\Controllers\ProductController;
 
 Route::get('/', [AnalisisController::class, 'index'])->name('home');
-Route::get('/tentang', [AnalisisController::class, 'tentang'])->name('tentang');
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
@@ -20,6 +21,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/laporan', [AnalisisController::class, 'laporan'])->name('laporan');
     Route::get('/analisis', [AnalisisController::class, 'analisis'])->name('analisis');
     Route::delete('/laporan/{id}', [AnalisisController::class, 'hapus'])->name('laporan.hapus');
+
+    // Produk & Stok
+    Route::resource('produk', ProductController::class)->except(['show']);
+    Route::get('/api/produk', [ProductController::class, 'apiList'])->name('api.produk');
 });
 
 Route::middleware('auth')->group(function () {

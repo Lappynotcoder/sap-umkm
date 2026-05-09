@@ -29,18 +29,24 @@
         </div>
 
         <!-- Password -->
-        <div>
-            <input id="password" class="form-control-custom" type="password" name="password" required autocomplete="new-password" placeholder="password">
+        <div class="pass-wrapper mb-3">
+            <input id="password" class="form-control-custom m-0" type="password" name="password" required autocomplete="new-password" placeholder="password">
+            <button type="button" class="btn-show-pass" onclick="togglePassword('password', this)">
+                <i class="bi bi-eye"></i>
+            </button>
             @error('password')
-                <span class="text-danger-small">{{ $message }}</span>
+                <span class="text-danger-small mt-2">{{ $message }}</span>
             @enderror
         </div>
 
         <!-- Confirm Password -->
-        <div>
-            <input id="password_confirmation" class="form-control-custom" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="konfirmasi password">
+        <div class="pass-wrapper mb-3">
+            <input id="password_confirmation" class="form-control-custom m-0" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="konfirmasi password">
+            <button type="button" class="btn-show-pass" onclick="togglePassword('password_confirmation', this)">
+                <i class="bi bi-eye"></i>
+            </button>
             @error('password_confirmation')
-                <span class="text-danger-small">{{ $message }}</span>
+                <span class="text-danger-small mt-2">{{ $message }}</span>
             @enderror
         </div>
 

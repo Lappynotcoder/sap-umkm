@@ -43,22 +43,17 @@
         <span class="text-muted small">
             <i class="bi bi-calendar3 me-1"></i>
             @php
-                try { $tglHeader = \Carbon\Carbon::parse($laporan->bulan)->translatedFormat('d F Y'); }
+                try { $tglHeader = \Carbon\Carbon::parse($laporan->bulan)->translatedFormat('F Y'); }
                 catch(\Exception $e) { $tglHeader = $laporan->bulan; }
             @endphp
-            {{ $tglHeader }}
+            Periode: {{ $tglHeader }}
         </span>
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <a href="{{ route('upload.form') }}" class="btn btn-success btn-sm d-print-none">
             <i class="bi bi-plus-circle me-1"></i>Analisis Baru
         </a>
-        <a href="{{ route('riwayat') }}" class="btn btn-outline-secondary btn-sm d-print-none">
-            <i class="bi bi-list-ul me-1"></i>Dashboard
-        </a>
-        <button onclick="window.print()" class="btn btn-outline-primary btn-sm d-print-none">
-            <i class="bi bi-printer me-1"></i>Cetak
-        </button>
+
         <form action="{{ route('laporan.hapus', $laporan->id) }}" method="POST"
               onsubmit="return confirm('Yakin hapus laporan ini?')" class="d-print-none">
             @csrf @method('DELETE')
@@ -153,7 +148,7 @@
 <div class="row g-4 mb-4">
     <div class="col-lg-7">
         <div class="chart-card h-100">
-            <div class="chart-title"><i class="bi bi-bar-chart-fill"></i>Waterfall Keuangan</div>
+            <div class="chart-title"><i class="bi bi-bar-chart-fill"></i>Ringkasan Pemasukan, Biaya, dan Laba</div>
             <canvas id="chartWaterfall" height="220"></canvas>
         </div>
     </div>
@@ -169,11 +164,11 @@
 <div class="row g-4 mb-4">
     <div class="col-lg-6">
         <div class="chart-card h-100">
-            <div class="chart-title"><i class="bi bi-bullseye"></i>Posisi terhadap Break Even Point</div>
+            <div class="chart-title"><i class="bi bi-bullseye"></i>Target Balik Modal vs Pemasukan</div>
             <canvas id="chartBep" height="180"></canvas>
             <div class="mt-3 text-center">
                 @if($laporan->total_pemasukan >= $laporan->break_even)
-                    <span class="badge bg-success px-3 py-2">✅ Pemasukan melampaui BEP</span>
+                    <span class="badge bg-success px-3 py-2">✅ Target Balik Modal tercapai</span>
                 @else
                     @php $kurang = $laporan->break_even - $laporan->total_pemasukan; @endphp
                     <span class="badge bg-warning text-dark px-3 py-2">⚠️ Butuh Rp {{ number_format($kurang,0,',','.') }} lagi</span>
@@ -195,13 +190,17 @@
     <div class="col-lg-7">
         <div class="chart-card h-100">
             <div class="chart-title"><i class="bi bi-graph-up"></i>Tren Pemasukan, HPP & Laba — {{ $laporan->nama_umkm }}</div>
-            <canvas id="chartTren" height="200"></canvas>
+            <div class="table-responsive"><div style="min-width: 600px;">
+                <canvas id="chartTren" height="200"></canvas>
+            </div></div>
         </div>
     </div>
     <div class="col-lg-5">
         <div class="chart-card h-100">
             <div class="chart-title"><i class="bi bi-speedometer"></i>Tren Margin Profitabilitas</div>
-            <canvas id="chartMarginTren" height="200"></canvas>
+            <div class="table-responsive"><div style="min-width: 500px;">
+                <canvas id="chartMarginTren" height="200"></canvas>
+            </div></div>
         </div>
     </div>
 </div>
@@ -212,10 +211,11 @@
 <div class="card card-metric p-3 mb-4">
     <h6 class="fw-bold mb-3"><i class="bi bi-table me-2" style="color:#1a6b3a"></i>Rincian Transaksi</h6>
     <div class="table-responsive">
-        <table class="table table-hover table-sm align-middle mb-0">
+        <table class="table table-hover table-sm align-middle mb-0 mobile-cards">
             <thead class="table-light">
                 <tr>
                     <th>#</th>
+                    @if(isset($detail[0]['tanggal']))<th>Tanggal</th>@endif
                     <th>Kategori</th>
                     @if(isset($detail[0]['keterangan']))<th>Keterangan</th>@endif
                     @if(isset($detail[0]['kuantitas']))<th class="text-end">Kuantitas</th>@endif
@@ -226,8 +226,13 @@
             <tbody>
                 @foreach($detail as $i => $baris)
                 <tr>
-                    <td class="text-muted small">{{ $i+1 }}</td>
-                    <td>
+                    <td data-label="#" class="text-muted small row-num-cell">{{ $i+1 }}</td>
+                    @if(isset($detail[0]['tanggal']))
+                        <td data-label="Tanggal" class="small">
+                            {{ isset($baris['tanggal']) ? \Carbon\Carbon::parse($baris['tanggal'])->format('d/m') : '-' }}
+                        </td>
+                    @endif
+                    <td data-label="Kategori">
                         @php $kat = strtolower($baris['kategori'] ?? '') @endphp
                         <span class="badge
                             {{ $kat == 'pemasukan' ? 'bg-success' : ($kat == 'hpp' ? 'bg-primary' : 'bg-warning text-dark') }}">
@@ -235,15 +240,15 @@
                         </span>
                     </td>
                     @if(isset($detail[0]['keterangan']))
-                        <td class="text-muted small">{{ $baris['keterangan'] ?? '-' }}</td>
+                        <td data-label="Keterangan" class="text-muted small">{{ $baris['keterangan'] ?? '-' }}</td>
                     @endif
                     @if(isset($detail[0]['kuantitas']))
-                        <td class="text-end">{{ number_format($baris['kuantitas'] ?? 0, 0, ',', '.') }}</td>
+                        <td data-label="Kuantitas" class="text-end">{{ number_format($baris['kuantitas'] ?? 0, 0, ',', '.') }}</td>
                     @endif
                     @if(isset($detail[0]['nilai_satuan']))
-                        <td class="text-end">Rp {{ number_format($baris['nilai_satuan'] ?? 0, 0, ',', '.') }}</td>
+                        <td data-label="Nilai Satuan" class="text-end">Rp {{ number_format($baris['nilai_satuan'] ?? 0, 0, ',', '.') }}</td>
                     @endif
-                    <td class="text-end fw-semibold">Rp {{ number_format($baris['nominal'] ?? 0, 0, ',', '.') }}</td>
+                    <td data-label="Total" class="text-end fw-semibold">Rp {{ number_format($baris['nominal'] ?? 0, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -251,6 +256,7 @@
                 <tr>
                     @php
                         $colSpan = 2;
+                        if(isset($detail[0]['tanggal'])) $colSpan++;
                         if(isset($detail[0]['keterangan'])) $colSpan++;
                         if(isset($detail[0]['kuantitas'])) $colSpan++;
                         if(isset($detail[0]['nilai_satuan'])) $colSpan++;

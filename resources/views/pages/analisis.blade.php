@@ -123,7 +123,9 @@
     <div class="col-lg-8">
         <div class="chart-card h-100">
             <div class="chart-title"><i class="bi bi-bar-chart-fill"></i>Pemasukan vs Pengeluaran Bulanan</div>
-            <canvas id="chartBulanan" height="160"></canvas>
+            <div class="table-responsive"><div style="min-width: 600px;">
+                <canvas id="chartBulanan" height="160"></canvas>
+            </div></div>
         </div>
     </div>
     <div class="col-lg-4">
@@ -139,7 +141,9 @@
     <div class="col-lg-6">
         <div class="chart-card h-100">
             <div class="chart-title"><i class="bi bi-speedometer"></i>Perkembangan Keuntungan</div>
-            <canvas id="chartMargin" height="150"></canvas>
+            <div class="table-responsive"><div style="min-width: 500px;">
+                <canvas id="chartMargin" height="150"></canvas>
+            </div></div>
         </div>
     </div>
     <div class="col-lg-6">
