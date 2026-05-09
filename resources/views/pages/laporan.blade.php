@@ -123,21 +123,6 @@
         font-size: 0.85rem;
     }
 
-    /* ── Signature area ── */
-    .signature-area {
-        margin-top: 2.5rem; padding-top: 1rem;
-        border-top: 1px solid #e2e8f0;
-    }
-    .sig-block {
-        text-align: center; min-width: 180px;
-    }
-    .sig-line {
-        border-top: 1px solid #111; width: 160px;
-        margin: 3rem auto 0.3rem;
-    }
-    .sig-name { font-size: 0.82rem; font-weight: 600; }
-    .sig-title { font-size: 0.72rem; color: #6c757d; }
-
     .btn-cetak {
         background: #F2AB39;
         color: #fff; border: none;
@@ -192,7 +177,6 @@
         .rasio-box { min-width: 100px; padding: 0.7rem 0.5rem; }
         .rasio-value { font-size: 1rem; }
         .pl-statement td, .pl-statement th { font-size: 0.82rem; }
-        .signature-area { flex-direction: column; align-items: center; }
     }
 </style>
 @endpush
@@ -274,7 +258,8 @@
     </div>
 
     {{-- ═══ LAPORAN LABA RUGI (P&L Statement) ═══ --}}
-    <table class="pl-statement">
+    <div class="table-responsive">
+        <table class="pl-statement">
         {{-- PENDAPATAN --}}
         <tr class="pl-section-head"><td colspan="2">Pendapatan</td></tr>
         @foreach($grupPemasukan as $gp)
@@ -341,6 +326,7 @@
             </td>
         </tr>
     </table>
+    </div>
 
     {{-- ═══ RASIO KEUANGAN ═══ --}}
     <div class="rasio-row">
@@ -364,7 +350,8 @@
         <div class="detail-section-title mb-2">
             <i class="bi bi-list-check me-1"></i>Rincian Transaksi
         </div>
-        <table class="detail-table">
+        <div class="table-responsive">
+            <table class="detail-table">
             <thead>
                 <tr>
                     <th style="width:28px">#</th>
@@ -416,24 +403,9 @@
                 </tr>
             </tfoot>
         </table>
+        </div>
     </div>
     @endif
-
-    {{-- ═══ TANDA TANGAN ═══ --}}
-    <div class="signature-area d-flex justify-content-between">
-        <div class="sig-block">
-            <div class="small text-muted">Mengetahui,</div>
-            <div class="sig-line"></div>
-            <div class="sig-name">{{ $laporan->nama_umkm }}</div>
-            <div class="sig-title">Pemilik Usaha</div>
-        </div>
-        <div class="sig-block" style="text-align:right;">
-            <div class="small text-muted">Cilacap, {{ now()->translatedFormat('d F Y') }}</div>
-            <div class="sig-line" style="margin-left:auto;"></div>
-            <div class="sig-name">Penyusun</div>
-            <div class="sig-title">SAP-UMKM</div>
-        </div>
-    </div>
 
 </div>
 

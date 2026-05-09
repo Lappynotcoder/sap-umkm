@@ -53,12 +53,7 @@
         <a href="{{ route('upload.form') }}" class="btn btn-success btn-sm d-print-none">
             <i class="bi bi-plus-circle me-1"></i>Analisis Baru
         </a>
-        <a href="{{ route('riwayat') }}" class="btn btn-outline-secondary btn-sm d-print-none">
-            <i class="bi bi-list-ul me-1"></i>Dashboard
-        </a>
-        <button onclick="window.print()" class="btn btn-outline-primary btn-sm d-print-none">
-            <i class="bi bi-printer me-1"></i>Cetak
-        </button>
+
         <form action="{{ route('laporan.hapus', $laporan->id) }}" method="POST"
               onsubmit="return confirm('Yakin hapus laporan ini?')" class="d-print-none">
             @csrf @method('DELETE')
@@ -153,7 +148,7 @@
 <div class="row g-4 mb-4">
     <div class="col-lg-7">
         <div class="chart-card h-100">
-            <div class="chart-title"><i class="bi bi-bar-chart-fill"></i>Waterfall Keuangan</div>
+            <div class="chart-title"><i class="bi bi-bar-chart-fill"></i>Ringkasan Pemasukan, Biaya, dan Laba</div>
             <canvas id="chartWaterfall" height="220"></canvas>
         </div>
     </div>
@@ -169,11 +164,11 @@
 <div class="row g-4 mb-4">
     <div class="col-lg-6">
         <div class="chart-card h-100">
-            <div class="chart-title"><i class="bi bi-bullseye"></i>Posisi terhadap Break Even Point</div>
+            <div class="chart-title"><i class="bi bi-bullseye"></i>Target Balik Modal vs Pemasukan</div>
             <canvas id="chartBep" height="180"></canvas>
             <div class="mt-3 text-center">
                 @if($laporan->total_pemasukan >= $laporan->break_even)
-                    <span class="badge bg-success px-3 py-2">✅ Pemasukan melampaui BEP</span>
+                    <span class="badge bg-success px-3 py-2">✅ Target Balik Modal tercapai</span>
                 @else
                     @php $kurang = $laporan->break_even - $laporan->total_pemasukan; @endphp
                     <span class="badge bg-warning text-dark px-3 py-2">⚠️ Butuh Rp {{ number_format($kurang,0,',','.') }} lagi</span>
@@ -195,13 +190,17 @@
     <div class="col-lg-7">
         <div class="chart-card h-100">
             <div class="chart-title"><i class="bi bi-graph-up"></i>Tren Pemasukan, HPP & Laba — {{ $laporan->nama_umkm }}</div>
-            <canvas id="chartTren" height="200"></canvas>
+            <div class="table-responsive"><div style="min-width: 600px;">
+                <canvas id="chartTren" height="200"></canvas>
+            </div></div>
         </div>
     </div>
     <div class="col-lg-5">
         <div class="chart-card h-100">
             <div class="chart-title"><i class="bi bi-speedometer"></i>Tren Margin Profitabilitas</div>
-            <canvas id="chartMarginTren" height="200"></canvas>
+            <div class="table-responsive"><div style="min-width: 500px;">
+                <canvas id="chartMarginTren" height="200"></canvas>
+            </div></div>
         </div>
     </div>
 </div>

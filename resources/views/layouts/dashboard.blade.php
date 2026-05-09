@@ -232,7 +232,7 @@
         </a>
         <a href="{{ route('upload.form') }}"
            class="sidebar-link {{ request()->routeIs('upload.*') ? 'active' : '' }}">
-            <i class="bi bi-journal-text"></i> Keuangan
+            <i class="bi bi-journal-text"></i> Transaksi
         </a>
         <a href="{{ route('produk.index') }}"
            class="sidebar-link {{ request()->routeIs('produk.*') ? 'active' : '' }}">
@@ -243,16 +243,16 @@
             <i class="bi bi-file-earmark-bar-graph"></i> Laporan
         </a>
         <a href="{{ route('analisis') }}"
-           class="sidebar-link {{ request()->routeIs('analisis') || request()->routeIs('dashboard.show') ? 'active' : '' }}">
+           class="sidebar-link {{ request()->routeIs('analisis') ? 'active' : '' }}">
             <i class="bi bi-graph-up"></i> Analisis
         </a>
         <a href="{{ route('history') }}"
-           class="sidebar-link {{ request()->routeIs('history') ? 'active' : '' }}">
+           class="sidebar-link {{ request()->routeIs('history') || request()->routeIs('dashboard.show') ? 'active' : '' }}">
             <i class="bi bi-clock-history"></i> Riwayat
         </a>
         <a href="{{ route('profile.edit') }}"
            class="sidebar-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-            <i class="bi bi-gear"></i> Pengaturan
+            <i class="bi bi-gear"></i> Pengaturan Akun
         </a>
     </nav>
 </aside>
